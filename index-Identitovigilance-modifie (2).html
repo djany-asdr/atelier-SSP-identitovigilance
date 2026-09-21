@@ -1,0 +1,1073 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deux patients, un seul dossier — atelier collision d'identité</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --paper:#D9E0DE; --card:#F7F9F8; --ink:#131E23; --ink-soft:#4C5B60;
+  --rule:#B9C4C1; --id-a:#0B6E8F; --id-b:#B5761B; --alert:#A8322A; --ok:#2F6B4F;
+  --hatch:repeating-linear-gradient(135deg,var(--id-a) 0 5px,var(--id-b) 5px 10px);
+  --display:"Space Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+body.locked{overflow:hidden}
+:focus-visible{outline:3px solid var(--id-a);outline-offset:3px}
+
+.topbar{position:sticky;top:0;z-index:50;background:var(--paper);border-bottom:1px solid var(--rule)}
+.topbar-in{max-width:1080px;margin:0 auto;padding:10px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brandmark{font-family:var(--display);font-weight:700;font-size:.74rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-soft);margin-right:auto}
+.clock{font-family:var(--mono);font-size:.9rem;font-weight:500;display:flex;align-items:baseline;gap:7px}
+.clock b{font-weight:600;font-size:1.05rem}
+.clock span{color:var(--ink-soft);font-size:.76rem}
+.clock.over b{color:var(--alert)}
+.phasebudget{font-family:var(--mono);font-size:.76rem;color:var(--ink-soft);
+  border-left:1px solid var(--rule);padding-left:16px}
+.spine{display:flex;gap:3px;max-width:1080px;margin:0 auto;padding:0 22px 9px}
+.spine i{flex:1;height:4px;background:var(--rule);border-radius:2px;transition:background .3s ease}
+.spine i.done{background:var(--ink-soft)}
+.spine i.now{background:var(--id-a)}
+
+main{max-width:1080px;margin:0 auto;padding:34px 22px 120px}
+.step{display:none;animation:rise .34s cubic-bezier(.2,.7,.3,1)}
+.step.on{display:block}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+.eyebrow{font-family:var(--display);font-size:.7rem;font-weight:700;letter-spacing:.19em;
+  text-transform:uppercase;color:var(--ink-soft);margin:0 0 12px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(2rem,5vw,3.2rem);line-height:1.02;
+  letter-spacing:-.025em;margin:0 0 18px}
+h2{font-family:var(--display);font-weight:700;font-size:clamp(1.45rem,3.3vw,2.1rem);line-height:1.1;
+  letter-spacing:-.02em;margin:0 0 14px}
+h3{font-family:var(--display);font-weight:600;font-size:1.02rem;letter-spacing:.01em;margin:0 0 8px}
+p{margin:0 0 15px;max-width:66ch}
+.lede{font-size:clamp(1.03rem,2vw,1.2rem);color:var(--ink-soft)}
+.panel{background:var(--card);border:1px solid var(--rule);border-radius:3px;padding:26px;margin:0 0 20px}
+
+.hero{position:relative;height:clamp(170px,26vw,230px);margin:0 0 30px;display:grid;place-items:center;overflow:hidden}
+.plate{position:absolute;background:var(--card);border:1px solid var(--rule);border-left:7px solid;
+  padding:14px 21px;min-width:min(320px,78vw);box-shadow:0 2px 0 rgba(19,30,35,.07)}
+.plate .fld{font-family:var(--mono);font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-soft)}
+.plate .nm{font-family:var(--display);font-weight:700;font-size:clamp(1rem,2.5vw,1.42rem);letter-spacing:-.01em}
+.plate .dob{font-family:var(--mono);font-size:.8rem;color:var(--ink-soft)}
+.plate.a{border-left-color:var(--id-a);animation:slideA 6s cubic-bezier(.5,0,.2,1) infinite}
+.plate.b{border-left-color:var(--id-b);animation:slideB 6s cubic-bezier(.5,0,.2,1) infinite}
+@keyframes slideA{0%,12%{transform:translate(-32%,-46%);opacity:1}46%,72%{transform:translate(0,-4%);opacity:.55}95%,100%{transform:translate(-32%,-46%);opacity:1}}
+@keyframes slideB{0%,12%{transform:translate(32%,46%);opacity:1}46%,72%{transform:translate(0,4%);opacity:.55}95%,100%{transform:translate(32%,46%);opacity:1}}
+.hero .merge{position:absolute;height:100%;width:min(320px,78vw);background:var(--hatch);opacity:0;
+  animation:mergeIn 6s cubic-bezier(.5,0,.2,1) infinite;mix-blend-mode:multiply}
+@keyframes mergeIn{0%,30%{opacity:0}52%,70%{opacity:.16}88%,100%{opacity:0}}
+
+button{font:inherit;cursor:pointer}
+.btn{font-family:var(--display);font-weight:600;font-size:.95rem;background:var(--ink);color:var(--card);
+  border:1px solid var(--ink);padding:13px 26px;border-radius:2px;transition:transform .12s ease,background .18s ease}
+.btn:hover:not([disabled]){background:#233238;transform:translateY(-1px)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover:not([disabled]){background:rgba(19,30,35,.06)}
+.btn[disabled]{opacity:.35;cursor:not-allowed;transform:none}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--paper);border-top:1px solid var(--rule)}
+.nav-in{max-width:1080px;margin:0 auto;padding:13px 22px;display:flex;gap:12px;align-items:center}
+.nav .hint{margin-left:auto;font-family:var(--mono);font-size:.74rem;color:var(--ink-soft);text-align:right}
+
+.q{border-top:1px solid var(--rule);padding:22px 0 4px}
+.q:first-of-type{border-top:0;padding-top:0}
+.q .stem{font-size:1.05rem;margin-bottom:14px;max-width:64ch}
+.q .ref{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--id-a);display:block;margin-bottom:6px}
+.opts{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.opt{font-family:var(--display);font-weight:600;font-size:.9rem;background:var(--card);color:var(--ink);
+  border:1px solid var(--rule);padding:11px 20px;border-radius:2px;transition:border-color .15s,background .15s}
+.opt:hover:not([disabled]){border-color:var(--ink)}
+.opt.picked{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.opt.right{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.wrong{background:var(--alert);border-color:var(--alert);color:#fff}
+.fb{display:none;border-left:3px solid var(--ink-soft);padding:2px 0 2px 16px;color:var(--ink-soft);
+  font-size:.96rem;max-width:64ch}
+.fb.show{display:block;animation:rise .25s ease}
+.fb b{color:var(--ink)}
+
+.defs{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.defs>div{padding:0 22px}
+.defs>div:first-child{border-right:1px solid var(--rule);padding-left:0}
+.defs>div:last-child{padding-right:0}
+.defs h3{color:var(--id-a)}
+.defs p{font-size:.97rem;margin-bottom:10px}
+.defs .tagline{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:1px;background:var(--rule);
+  border:1px solid var(--rule)}
+.kpi{background:var(--card);padding:16px 18px}
+.kpi b{display:block;font-family:var(--display);font-weight:700;font-size:1.75rem;line-height:1;
+  letter-spacing:-.03em;color:var(--id-a)}
+.kpi .lab{font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-soft);margin-top:7px;display:block;line-height:1.5}
+.kpi .obj{font-family:var(--mono);font-size:.64rem;color:var(--ink-soft);margin-top:5px;display:block;opacity:.8}
+
+.caseband{display:flex;gap:20px;flex-wrap:wrap;align-items:baseline;border-bottom:1px solid var(--rule);
+  padding-bottom:13px;margin-bottom:6px}
+.who{font-family:var(--mono);font-size:.76rem;letter-spacing:.03em}
+.who i{display:inline-block;width:10px;height:10px;margin-right:7px;vertical-align:-1px}
+.who.a i{background:var(--id-a)}
+.who.b i{background:var(--id-b)}
+.who.n i{background:var(--ink-soft)}
+.tl{list-style:none;margin:0;padding:0}
+.tl li{position:relative;margin:0}
+.ev{width:100%;text-align:left;background:transparent;border:0;display:grid;
+  grid-template-columns:26px 104px 14px 1fr;gap:0 14px;padding:14px 14px 14px 10px;border-radius:2px;
+  border-top:1px solid var(--rule);transition:background .15s ease}
+.tl li:first-child .ev{border-top:0}
+.ev:hover:not([disabled]){background:rgba(11,110,143,.07)}
+.ev .box{width:18px;height:18px;border:2px solid var(--rule);border-radius:2px;margin-top:3px;
+  position:relative;background:var(--card)}
+.ev.sel .box{background:var(--ink);border-color:var(--ink)}
+.ev.sel .box::after{content:"";position:absolute;left:4px;top:0;width:5px;height:10px;
+  border:solid var(--card);border-width:0 2px 2px 0;transform:rotate(43deg)}
+.ev .t{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--ink-soft);padding-top:3px}
+.ev .track{position:relative}
+.ev .track::before{content:"";position:absolute;left:5px;top:-15px;bottom:-15px;width:3px;background:var(--rule)}
+.ev .track::after{content:"";position:absolute;left:0;top:5px;width:13px;height:13px;border-radius:50%;
+  background:var(--card);border:3px solid var(--rule)}
+.ev[data-track="a"] .track::after{border-color:var(--id-a)}
+.ev[data-track="b"] .track::after{border-color:var(--id-b)}
+.ev[data-track="n"] .track::after{border-color:var(--ink-soft);border-radius:0}
+.ev.sel{background:rgba(19,30,35,.06)}
+.tl.revealed .ev{pointer-events:none}
+.tl.revealed .ev.err{background:rgba(168,50,42,.1);box-shadow:inset 3px 0 0 var(--alert)}
+.tl.revealed .ev.err .tag{color:var(--alert)}
+.tl.revealed .ev.err .box{background:var(--alert);border-color:var(--alert)}
+.tl.revealed .ev.err .box::after{content:"";position:absolute;left:4px;top:0;width:5px;height:10px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(43deg)}
+.tl.revealed .ev.tainted .track::before{background:var(--hatch)}
+.tl.revealed .ev.tainted .track::after{background:var(--hatch);border-color:transparent}
+.ev .tag{display:block;font-family:var(--mono);font-size:.65rem;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-soft);margin-bottom:3px}
+.ev .txt{font-size:1rem;max-width:58ch}
+
+.actionbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:18px;
+  border-top:1px solid var(--rule);padding-top:18px}
+.counter{font-family:var(--mono);font-size:.76rem;color:var(--ink-soft)}
+
+.verdict{display:none;margin-top:22px}
+.verdict.show{display:block;animation:rise .3s ease}
+.stamp{font-family:var(--display);font-weight:700;font-size:.72rem;letter-spacing:.18em;
+  text-transform:uppercase;display:inline-block;padding:6px 14px;color:#fff;margin-bottom:14px}
+.stamp.hit{background:var(--ok)}
+.stamp.near{background:var(--id-b)}
+.stamp.miss{background:var(--alert)}
+.barriers{list-style:none;margin:16px 0 0;padding:0}
+.barriers li{border-top:1px solid var(--rule);padding:13px 0;display:grid;
+  grid-template-columns:110px 1fr;gap:16px;align-items:start}
+.barriers .when{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--alert)}
+.rule-out{margin-top:20px;padding:16px 18px;background:rgba(11,110,143,.09);border-left:3px solid var(--id-a)}
+.rule-out h3{margin-bottom:6px}
+.rule-out p{margin:0;font-size:.99rem}
+
+.ctq-res{margin-top:22px;border:1px solid var(--rule);background:var(--paper)}
+.ctq-res .head{font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-soft);padding:12px 18px;border-bottom:1px solid var(--rule)}
+.ctq-res .row{padding:15px 18px;border-bottom:1px solid var(--rule)}
+.ctq-res .row:last-child{border-bottom:0}
+.ctq-res .row.good{border-left:3px solid var(--ok)}
+.ctq-res .row.bad{border-left:3px solid var(--alert)}
+.ctq-res .who2{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;
+  display:block;margin-bottom:5px}
+.ctq-res .row.good .who2{color:var(--ok)}
+.ctq-res .row.bad .who2{color:var(--alert)}
+.ctq-res .prop{font-size:1rem;margin:0 0 8px;font-weight:600}
+.ctq-res .why{font-size:.95rem;color:var(--ink-soft);margin:0}
+
+.mask{position:fixed;inset:0;background:rgba(19,30,35,.62);z-index:100;display:none;
+  align-items:center;justify-content:center;padding:20px}
+.mask.open{display:flex;animation:fade .2s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal{background:var(--card);border:1px solid var(--rule);border-radius:3px;
+  width:min(700px,100%);max-height:88vh;overflow-y:auto;padding:30px;
+  box-shadow:0 18px 50px rgba(19,30,35,.3);animation:rise .28s cubic-bezier(.2,.7,.3,1)}
+.modal .kicker{font-family:var(--display);font-size:.68rem;font-weight:700;letter-spacing:.19em;
+  text-transform:uppercase;color:var(--id-a);margin:0 0 10px}
+.modal h3{font-family:var(--display);font-weight:700;font-size:clamp(1.25rem,3vw,1.55rem);
+  letter-spacing:-.02em;margin:0 0 8px}
+.modal .sub{font-size:.97rem;color:var(--ink-soft);margin:0 0 22px}
+.ctq-list{display:flex;flex-direction:column;gap:10px;margin-bottom:22px}
+.ctq-opt{display:grid;grid-template-columns:24px 1fr;gap:14px;text-align:left;
+  background:var(--paper);border:1px solid var(--rule);border-radius:2px;padding:15px 17px;
+  font-family:var(--body);font-size:1rem;line-height:1.5;color:var(--ink);
+  transition:border-color .15s,background .15s}
+.ctq-opt:hover{border-color:var(--ink-soft)}
+.ctq-opt .dot{width:18px;height:18px;border:2px solid var(--rule);border-radius:50%;
+  margin-top:3px;position:relative;background:var(--card)}
+.ctq-opt.sel{border-color:var(--ink);background:var(--card)}
+.ctq-opt.sel .dot{border-color:var(--ink)}
+.ctq-opt.sel .dot::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--ink)}
+.modal .foot{display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+  border-top:1px solid var(--rule);padding-top:18px}
+.modal .foot .warnmsg{font-family:var(--mono);font-size:.73rem;color:var(--alert);opacity:0;transition:opacity .2s}
+.modal .foot .warnmsg.show{opacity:1}
+
+.hidden{display:none !important}
+.score{font-family:var(--mono);font-size:.76rem;color:var(--ink-soft)}
+.completion{border-left:4px solid var(--ok);background:rgba(44,110,82,.08)}
+.completion h3{margin:0 0 8px}
+.completion p{margin:0;max-width:62ch}
+.note{font-family:var(--mono);font-size:.78rem;line-height:1.7;color:var(--ink-soft);
+  border-left:2px solid var(--rule);padding-left:16px;max-width:62ch}
+
+@media (max-width:640px){
+  body{font-size:16px}
+  main{padding:26px 16px 130px}
+  .topbar-in,.spine,.nav-in{padding-left:16px;padding-right:16px}
+  .panel{padding:20px 17px}
+  .ev{grid-template-columns:24px 70px 14px 1fr;gap:0 9px;padding:13px 4px}
+  .ev .t{font-size:.71rem}
+  .barriers li{grid-template-columns:1fr;gap:4px}
+  .phasebudget{border-left:0;padding-left:0}
+  .defs{grid-template-columns:1fr}
+  .defs>div{padding:0}
+  .defs>div:first-child{border-right:0;border-bottom:1px solid var(--rule);padding-bottom:18px;margin-bottom:18px}
+  .modal{padding:22px 18px}
+  .ctq-opt{grid-template-columns:20px 1fr;gap:11px;padding:13px 14px;font-size:.97rem}
+}
+@media print{
+  .topbar,.nav,.spine,.mask{display:none}
+  .step{display:block !important;page-break-after:always}
+  body{background:#fff}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+  .plate.a{transform:translate(-32%,-46%)}
+  .plate.b{transform:translate(32%,46%)}
+}
+</style>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brandmark">Identitovigilance · Atelier flash</div>
+    <div class="phasebudget" id="budget"></div>
+    <div class="clock" id="clock"><b>00:00</b><span id="total"></span></div>
+  </div>
+  <div class="spine" id="spine"></div>
+</header>
+
+<main id="main">
+
+<!-- SÉQUENCE 1 · CONSIGNES -->
+<section class="step on" data-mins="3">
+  <div class="hero" aria-hidden="true">
+    <div class="merge"></div>
+    <div class="plate a">
+      <div class="fld">Identité 1 · dossier ouvert</div>
+      <div class="nm">HOARAU Marie-Ange</div>
+      <div class="dob">née le 04/09/1951</div>
+    </div>
+    <div class="plate b">
+      <div class="fld">Identité 2 · dossier ouvert</div>
+      <div class="nm">HOARAU Marie-Angèle</div>
+      <div class="dob">née le 14/09/1951</div>
+    </div>
+  </div>
+
+  <p class="eyebrow">Semaine de la Sécurité des Patients · 14-18 septembre 2026</p>
+  <h1>Deux patients,<br>un seul dossier.</h1>
+  <p class="lede">Six situations réelles de terrain, en HAD et en dialyse. Pour chacune : <b>où l'erreur d'identité est-elle entrée, et que fait-on maintenant ?</b></p>
+
+  <div class="panel">
+    <h3 style="margin-bottom:6px">Comment ça marche</h3>
+    <p style="margin-bottom:22px">Chaque cas se déroule en trois temps. Comptez environ quatre minutes par cas.</p>
+    <div class="defs">
+      <div>
+        <span class="tagline">Temps 1 · repérer</span>
+        <h3>Lisez la chronologie</h3>
+        <p style="margin:0">Quatre à six moments s'enchaînent. <b>Cochez ceux où vous estimez que l'erreur est entrée</b>, pas ceux où elle a été découverte. Vous pouvez en cocher plusieurs et revenir sur votre choix tant que vous n'avez pas validé.</p>
+      </div>
+      <div>
+        <span class="tagline">Temps 2 · décider</span>
+        <h3>Choisissez la conduite à tenir</h3>
+        <p style="margin:0">Le bouton ouvre quatre propositions. <b>Une seule est conforme.</b> Choisissez celle que vous appliqueriez réellement.</p>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--rule);margin-top:22px;padding-top:20px">
+      <span class="tagline">Temps 3 · comprendre</span>
+      <h3 style="margin:6px 0 8px">L'analyse s'affiche</h3>
+      <p style="margin:0">Les vrais moments d'erreur apparaissent avec les barrières qui auraient dû fonctionner. La conduite conforme est ensuite expliquée, y compris si vous vous êtes trompé : <b>c'est là que se trouve l'essentiel de l'atelier.</b></p>
+    </div>
+  </div>
+
+  <div class="panel" style="background:var(--ink);color:var(--card);border-color:var(--ink)">
+    <p style="font-family:var(--display);font-weight:700;font-size:clamp(1.05rem,2.5vw,1.55rem);line-height:1.25;margin:0 0 14px;max-width:38ch">
+      Aucun de ces cas ne met en cause une personne.
+    </p>
+    <p style="margin:0;max-width:60ch;opacity:.88">Ce qu'on cherche, ce sont les <b>barrières d'identification manquantes</b> : celles qui empêchent qu'un dossier, un document, un traitement ou un résultat soit attribué à la mauvaise personne.</p>
+  </div>
+</section>
+
+<!-- SÉQUENCE 2 · REPÈRES -->
+<section class="step" data-mins="6">
+  <p class="eyebrow">Séquence 2 sur 9 · 6 minutes · les deux distinctions à tenir</p>
+  <h2>Avant de commencer : deux distinctions indispensables</h2>
+  <p class="lede">Doublon ou collision ? Identification primaire ou secondaire ? Ces repères seront utilisés dans les six cas.</p>
+
+  <div class="panel quizblock">
+    <h3 style="margin-bottom:18px">Première distinction — doublon ou collision ?</h3>
+    <div class="q" data-answer="0">
+      <p class="stem"><b>1.</b> M. Hoarau a deux dossiers dans le logiciel : un créé aux admissions le jeudi, un créé par l'astreinte le samedi soir.</p>
+      <div class="opts"><button class="opt">Doublon</button><button class="opt">Collision</button></div>
+      <div class="fb"><b>Doublon.</b> Un même usager enregistré sous plusieurs identités numériques. Ses données sont éparpillées : chaque professionnel qui ouvre un dossier ne voit qu'une partie de l'histoire. Ça se répare par fusion.</div>
+    </div>
+    <div class="q" data-answer="1">
+      <p class="stem"><b>2.</b> Le dossier de M. Hoarau contient un compte-rendu et deux séries de constantes qui appartiennent à son fils — même nom, même adresse, pris en charge la même semaine.</p>
+      <div class="opts"><button class="opt">Doublon</button><button class="opt">Collision</button></div>
+      <div class="fb"><b>Collision.</b> Les données de deux personnes différentes sont mélangées dans un seul dossier. Et attention : <b>ça ne se répare pas par fusion — la fusion l'aggrave.</b></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3 style="margin-bottom:18px">Seconde distinction — identification primaire ou secondaire ?</h3>
+    <div class="defs">
+      <div>
+        <span class="tagline">Primaire · une fois</span>
+        <h3>Créer et retrouver la bonne identité</h3>
+        <p>Recueillir les traits d'identité sur une pièce d'identité à haute confiance, créer ou retrouver l'identité numérique, lui donner un statut, gérer doublons et collisions.</p>
+        <p style="margin:0"><b>Traits stricts :</b> nom de naissance, premier prénom de naissance, date de naissance, sexe, lieu de naissance. Une divergence sur l'un d'eux interdit de conclure au doublon.</p>
+      </div>
+      <div>
+        <span class="tagline">Secondaire · à chaque acte</span>
+        <h3>Vérifier que c'est bien cette personne</h3>
+        <p>Avant chaque soin, chaque prélèvement, chaque remise de document ou de traitement : contrôler la concordance entre la personne présente, le dossier ouvert, l'étiquette et le produit.</p>
+        <p style="margin:0"><b>Toujours par question ouverte.</b> « Quel est votre nom de naissance ? Votre date de naissance ? » Jamais « Vous êtes bien Mme P. ? ».</p>
+      </div>
+    </div>
+  </div>
+
+  <h2 style="margin-top:34px">Le cas d'école : quand le doublon fabrique la collision</h2>
+  <div class="panel">
+    <p style="font-size:1.06rem">M. Fontaine est admis en HAD un jeudi. Un dossier est créé aux admissions. Le samedi soir, l'astreinte, ne le retrouvant pas dans le DPI, en crée un second : <b>deux IPP pour une seule personne</b>.</p>
+    <p style="font-size:1.06rem">Pendant trois semaines, la vie du patient se répartit entre les deux dossiers : les ordonnances dans l'un, les bilans biologiques dans l'autre.</p>
+    <p style="font-size:1.06rem">Le doublon est détecté et signalé. La fusion est demandée et exécutée le jour même. Deux jours plus tard, le médecin coordonnateur constate que le dossier fusionné contient <b>une créatininémie qui n'appartient à aucun des deux prélèvements de M. Fontaine</b> : pendant que le doublon existait, un résultat orphelin d'un autre patient avait été rattaché « au dossier Fontaine » — sans que personne ne sache lequel des deux.</p>
+    <p style="font-size:1.06rem;margin-bottom:0">Le doublon est réparé. La collision, elle, est désormais indissociable du dossier unique.</p>
+    <div class="actionbar">
+      <button class="btn" id="s1-open">Choisir la conduite à tenir</button>
+      <span class="counter">Une seule bonne réponse</span>
+    </div>
+    <div class="verdict" id="s1-verdict"></div>
+  </div>
+
+  <div class="panel" style="background:var(--ink);color:var(--card);border-color:var(--ink)">
+    <p style="font-family:var(--display);font-weight:700;font-size:clamp(1.05rem,2.5vw,1.55rem);line-height:1.25;margin:0;max-width:36ch">
+      Le doublon, c'est une information qui manque.<br>La collision, c'est une information qui ment.
+    </p>
+  </div>
+</section>
+
+<div id="cases"></div>
+
+<!-- SÉQUENCE 9 -->
+<section class="step" data-mins="4">
+  <p class="eyebrow">Séquence 9 sur 9 · 4 minutes · classer les défaillances</p>
+  <h2>Primaire ou secondaire ?</h2>
+  <p class="lede">Six situations courtes. Pour chacune : quel niveau d'identification a lâché ?</p>
+
+  <div class="panel quizblock">
+    <div class="q" data-answer="0">
+      <p class="stem"><span class="ref">Création de dossier</span><b>1.</b> Une erreur de date de naissance commise à la création du dossier, à partir d'une demande reçue par fax, aboutit à un doublon dans le DPI.</p>
+      <div class="opts"><button class="opt">Primaire</button><button class="opt">Secondaire</button><button class="opt">Les deux</button></div>
+      <div class="fb"><b>Primaire.</b> Le recueil et la vérification des traits d'identité au moment de créer l'identité numérique : une date de naissance fausse saisie à la création est une défaillance primaire pure. C'est aussi le type de défaillance qui se rattrape le mieux, parce que le doublon finit par se voir.</div>
+    </div>
+    <div class="q" data-answer="1">
+      <p class="stem"><span class="ref">Livraison au domicile</span><b>2.</b> Un traitement destiné à un patient est livré et rangé dans le réfrigérateur du domicile d'un autre patient.</p>
+      <div class="opts"><button class="opt">Primaire</button><button class="opt">Secondaire</button><button class="opt">Les deux</button></div>
+      <div class="fb"><b>Secondaire.</b> Aucun dossier numérique n'est touché : les deux identités étaient parfaitement justes dans le système. C'est le lien physique entre le produit et la personne qui a rompu, au dernier mètre. L'identification secondaire ne se joue pas que devant un écran.</div>
+    </div>
+    <div class="q" data-answer="1">
+      <p class="stem"><span class="ref">Pré-analytique · dialyse</span><b>3.</b> Prescription et feuille de laboratoire au nom d'un patient, tubes au nom d'un autre. Inversion réciproque, deux fois dans la même journée, plus un near-miss le même jour.</p>
+      <div class="opts"><button class="opt">Primaire</button><button class="opt">Secondaire</button><button class="opt">Les deux</button></div>
+      <div class="fb"><b>Secondaire.</b> Défaillance de la concordance documents / tubes en pré-analytique. Mais la classification n'est pas l'essentiel ici : <b>trois événements le même jour ne sont pas trois erreurs individuelles</b>, c'est un processus sans barrière interne. Quand la détection vient du laboratoire, elle vient de l'extérieur.</div>
+    </div>
+    <div class="q" data-answer="1">
+      <p class="stem"><span class="ref">Saisie au lit du patient</span><b>4.</b> Des constantes sont saisies dans le mauvais dossier. Le patient concerné a un homonyme de prénom dans le service.</p>
+      <div class="opts"><button class="opt">Primaire</button><button class="opt">Secondaire</button><button class="opt">Les deux</button></div>
+      <div class="fb"><b>Secondaire.</b> Les deux identités existaient correctement dans le référentiel : rien n'a été mal créé, mal recueilli ni mal qualifié. La défaillance est entièrement dans le contrôle de concordance avant l'acte — vérifier que le dossier affiché à l'écran est bien celui de la personne devant soi. L'homonymie est le facteur favorisant, pas la cause : elle rend le contrôle indispensable, elle ne le remplace pas.</div>
+    </div>
+    <div class="q" data-answer="1">
+      <p class="stem"><span class="ref">Transmission à la pharmacie</span><b>5.</b> Une ordonnance est transmise à la pharmacie avec pour seul identifiant un nom abrégé, alors que quatre patients homonymes sont actifs. La pharmacienne réoriente vers le mauvais patient, dont le circuit pharmacologique s'ouvre avec les données du premier.</p>
+      <div class="opts"><button class="opt">Primaire</button><button class="opt">Secondaire</button><button class="opt">Les deux</button></div>
+      <div class="fb"><b>Secondaire.</b> Transmettre un identifiant insuffisant au franchissement d'une interface est une défaillance secondaire. Le RNIV impose un identifiant discriminant dans tout échange — IPP au minimum, INS de préférence. Quatre homonymes actifs en même temps, ce n'est pas un cas exceptionnel à La Réunion : c'est le régime normal, et les barrières doivent être calibrées là-dessus.</div>
+    </div>
+    <div class="q" data-answer="1">
+      <p class="stem"><span class="ref">Numérisation dans le DPI</span><b>6.</b> Des ordonnances sont numérisées dans le dossier d'une autre patiente. L'IDEL les renumérise au bon endroit — mais le document erroné reste dix jours dans le mauvais dossier.</p>
+      <div class="opts"><button class="opt">Primaire</button><button class="opt">Secondaire</button><button class="opt">Les deux</button></div>
+      <div class="fb"><b>Secondaire</b>, deux fois de suite : au versement, puis à la non-suppression. La seconde est la plus grave. Pendant dix jours, le dossier contenait les données d'une autre personne, disponibles pour n'importe quelle décision de soin. <b>Corriger une collision, ce n'est pas ajouter au bon endroit — c'est retirer du mauvais.</b></div>
+    </div>
+  </div>
+
+  <div class="panel" style="background:var(--ink);color:var(--card);border-color:var(--ink)">
+    <p style="font-family:var(--display);font-weight:700;font-size:clamp(1.05rem,2.5vw,1.55rem);line-height:1.25;margin:0;max-width:38ch">
+      La primaire se rattrape.<br>La secondaire, personne ne la voit lâcher.
+    </p>
+  </div>
+
+  <p class="score" id="scoreline"></p>
+  <div class="panel completion hidden" id="completion" role="status" aria-live="polite">
+    <span class="stamp hit">Atelier terminé</span>
+    <h3>Merci d'avoir participé.</h3>
+    <p>Vous avez terminé les six cas et la synthèse finale. Les corrections restent accessibles avec le bouton « Précédent ».</p>
+  </div>
+  <button class="btn ghost" id="restart">Recommencer</button>
+</section>
+
+</main>
+
+<nav class="nav">
+  <div class="nav-in">
+    <button class="btn ghost" id="prev" disabled>Précédent</button>
+    <button class="btn" id="next">Suivant</button>
+    <span class="hint" id="hint"></span>
+  </div>
+</nav>
+
+<div class="mask" id="mask" role="dialog" aria-modal="true" aria-labelledby="m-title">
+  <div class="modal">
+    <p class="kicker" id="m-kicker">Conduite à tenir</p>
+    <h3 id="m-title">Que faites-vous maintenant ?</h3>
+    <p class="sub" id="m-sub">Quatre propositions. Une seule est conforme.</p>
+    <div class="ctq-list" id="m-list"></div>
+    <div class="foot">
+      <button class="btn" id="m-go">Voir l'analyse</button>
+      <button class="btn ghost" id="m-cancel">Revenir au cas</button>
+      <span class="warnmsg" id="m-warn">Choisissez une proposition avant de continuer.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var CTQ_S1={
+  question:"Le dossier fusionné de M. Fontaine contient une donnée qui n'est pas la sienne. Que faites-vous ?",
+  options:[
+    {txt:"Supprimer la créatininémie erronée du dossier et prévenir le laboratoire de son erreur.",
+     ok:false,
+     why:"Deux fautes. Effacer une donnée de santé fait disparaître la preuve de la collision et rend le démêlage ultérieur impossible. Et l'erreur n'est pas celle du laboratoire : c'est le doublon interne qui a créé l'ambiguïté de rattachement."},
+    {txt:"Demander sans délai la défusion des deux dossiers, pour rendre à chacun ses données.",
+     ok:false,
+     why:"La défusion ne rend pas les données à leurs propriétaires : elle les répartit selon la logique du logiciel, pas selon la réalité clinique. Appliquée à un dossier déjà collisionné, elle disperse le mélange dans deux dossiers au lieu d'un."},
+    {txt:"Signaler l'événement, suspendre toute décision médicale appuyée sur les données douteuses, et laisser la cellule d'identitovigilance arbitrer la conduite sur pièces et sources externes.",
+     ok:true,
+     why:"C'est la seule conforme. Trois temps dans cet ordre : protéger le patient en gelant les décisions, tracer par le signalement, puis reconstituer — laboratoire, pharmacie et prescripteur détiennent les originaux qui permettent de rendre chaque ligne à son patient. Le DPI, lui, ne le sait plus. Les deux patients concernés doivent ensuite être informés."},
+    {txt:"Annoter le dossier « données à vérifier » et poursuivre la prise en charge en tenant compte de l'incertitude.",
+     ok:false,
+     why:"Une annotation ne bloque rien. La donnée fausse reste consultable et exploitable par le prochain professionnel, qui n'aura ni le temps ni le contexte pour interpréter l'avertissement. Une collision se traite, elle ne se signale pas au dossier."}
+  ]
+};
+
+var CASES=[
+/* ---------- SÉQUENCE 2 ---------- */
+{
+  mins:4, theme:"Cas 1 · HAD · le foyer",
+  title:"Le domicile des B.",
+  lede:"M. et Mme B., 81 et 79 ans, mariés, pris en charge en HAD à la même adresse. Lui pour plaies chroniques, elle pour soins palliatifs. Deux dossiers distincts, correctement créés.",
+  legend:{a:"M. B. — dossier A", b:"Mme B. — dossier B", n:"Acte hors présence patient"},
+  events:[
+    {t:"09:40", track:"a", tag:"Domicile",
+     txt:"Arrivée chez les B. L'IDE ouvre la tablette sur le dossier de M. B., réalise le pansement, saisit les constantes."},
+    {t:"10:05", track:"b", tag:"Domicile",
+     txt:"Mme B. se plaint de douleurs. L'IDE l'examine, relève une TA à 8 et une saturation à 91 %, reprend la tablette restée ouverte sur l'écran de saisie précédent, et enregistre."},
+    {t:"10:20", track:"b", tag:"Domicile",
+     txt:"Prélèvement sanguin sur Mme B. L'étiquette est éditée depuis la tablette — toujours connectée au dossier ouvert — et collée sans relecture."},
+    {t:"11:00", track:"n", tag:"Transmission téléphonique",
+     txt:"Appel à l'IDEC : « Je suis chez les B., la dame ne va pas bien, TA à 8, sat 91. » L'IDEC note dans le dossier ouvert devant elle."},
+    {t:"J+2", track:"a", tag:"Conséquence",
+     txt:"Le médecin coordonnateur constate un bilan biologique perturbé chez M. B. et fait modifier son traitement."}
+  ],
+  errors:[1,3],
+  barriers:[
+    {when:"10:05", txt:"<b>Entrée de la collision.</b> Session non refermée entre deux patients du même foyer. Le dossier de M. B. est resté affiché ; les données de Mme B. y ont été écrites. Barrière : fermer et rouvrir le dossier à chaque changement de personne, même sous le même toit, et relire l'identité affichée avant toute saisie."},
+    {when:"11:00", txt:"Transmission orale par le seul nom de famille, commun aux deux. « La dame » n'est pas un identifiant. Barrière : trois traits stricts à l'oral — nom de naissance, premier prénom, date de naissance — pour toute transmission, y compris courte et urgente."}
+  ],
+  extraNote:"Le prélèvement de 10h20 n'est pas une erreur distincte : l'étiquette est éditée depuis un dossier déjà erroné. C'est la propagation de la faute de 10h05, pas une seconde faute.",
+  ruleTitle:"Ce qu'on en retient",
+  rule:"Le facteur de risque n°1 de l'HAD, c'est l'<b>homonymie familiale</b> — conjoints, parents et enfants, fratries au même domicile. À La Réunion il est structurellement plus élevé : patronymes très concentrés, foyers multigénérationnels, prénom d'usage très souvent différent du premier prénom de naissance.",
+  ctq:{
+    question:"On est à J+2. Le traitement de M. B. vient d'être modifié sur des données qui ne sont pas les siennes. Que faites-vous en premier ?",
+    options:[
+      {txt:"Recopier les constantes dans le dossier de Mme B. et laisser celles de M. B. en place, pour la traçabilité.",
+       ok:false,
+       why:"Vous dupliquez la donnée au lieu de la déplacer. Le dossier de M. B. reste porteur de constantes qui ne sont pas les siennes, exploitables par le prochain professionnel. La traçabilité se fait par le signalement, jamais en laissant une donnée fausse en place."},
+      {txt:"Alerter immédiatement le médecin coordonnateur pour suspendre la modification de traitement de M. B., signaler l'événement, et faire retirer les données étrangères par la cellule d'identitovigilance.",
+       ok:true,
+       why:"L'urgence est clinique avant d'être documentaire : un patient reçoit un traitement calculé sur des données qui ne sont pas les siennes. On suspend, on signale, puis on corrige — dans cet ordre. Le retrait des données du dossier de M. B. relève de la CIV, pas du professionnel qui découvre l'anomalie."},
+      {txt:"Rectifier soi-même les deux dossiers dans le DPI et le mentionner à l'IDEC en fin de tournée.",
+       ok:false,
+       why:"La correction individuelle d'une collision est le deuxième mécanisme de création de collisions. Et « en fin de tournée » laisse plusieurs heures pendant lesquelles la décision thérapeutique erronée reste appliquée."},
+      {txt:"Annuler le résultat de laboratoire et refaire un prélèvement chez Mme B. sous contrôle d'identité.",
+       ok:false,
+       why:"Nécessaire, mais très insuffisant, et pas en premier. Cela traite le tube et ignore l'essentiel : M. B. est actuellement traité sur des données qui ne lui appartiennent pas."}
+    ]
+  }
+},
+/* ---------- SÉQUENCE 3 ---------- */
+{
+  mins:4, theme:"Cas 2 · Dialyse · l'emplacement",
+  title:"La salle de huit postes",
+  lede:"Mme R. et Mme R., sans lien de parenté, même nom de naissance, dialysées le même jour depuis deux ans. L'une est appelée par son prénom usuel, l'autre par un surnom.",
+  legend:{a:"Mme R. (poste 3) — dossier A", b:"Mme R. (poste 5) — dossier B", n:"Acte hors présence patient"},
+  events:[
+    {t:"Veille 17:00", track:"n", tag:"Préparation du bilan mensuel",
+     txt:"L'AS prépare les étiquettes du bilan mensuel pour toute la salle, classées par numéro de poste."},
+    {t:"07:50", track:"n", tag:"Organisation de la séance",
+     txt:"Absence d'un patient : rotation des postes. Mme R., habituellement au poste 3, est installée au poste 5."},
+    {t:"08:00", track:"a", tag:"Branchement",
+     txt:"L'IDE vérifie l'identité : « Bonjour, vous êtes bien au poste 5 ? » Réponse : « oui »."},
+    {t:"08:05", track:"a", tag:"Générateur",
+     txt:"Paramétrage. Poids sec et durée repris depuis le dossier affiché à l'écran du poste 5."},
+    {t:"08:15", track:"a", tag:"Prélèvement",
+     txt:"Bilan mensuel. Étiquette prise dans la pochette du poste 5."},
+    {t:"J+11", track:"b", tag:"Conséquence",
+     txt:"Résultat sérologique attribué à la mauvaise patiente. Isolement décidé. Annonce faite à la famille."}
+  ],
+  errors:[0,2],
+  barriers:[
+    {when:"Veille 17:00", txt:"<b>Le risque est armé ici.</b> Étiquetage préparé par poste, quinze heures avant l'acte. Le poste est un emplacement, pas une identité : dès que la salle tourne, l'étiquette et la personne se délient. Barrière : étiqueter au moment du prélèvement, devant la patiente, après contrôle actif de l'identité."},
+    {when:"08:00", txt:"<b>Le risque se réalise ici.</b> Identification par l'emplacement, et question fermée à laquelle une patiente fatiguée ou polie répondra oui. Barrière : question ouverte sur les traits stricts, systématique, y compris avec une patiente connue depuis deux ans."}
+  ],
+  extraNote:"La rotation de 7h50 n'est pas une faute : réorganiser une salle est normal. Elle est le révélateur — elle rend visible une organisation qui reposait sur la stabilité des places.",
+  ruleTitle:"Ce qu'on en retient",
+  rule:"En dialyse, l'éroseur principal, c'est la <b>sérialité</b>. Les mêmes visages trois fois par semaine pendant des années : la familiarité fait abandonner l'identification secondaire. Un emplacement, un générateur, une pochette ne sont jamais des identifiants.",
+  ctq:{
+    question:"Une annonce de sérologie positive a été faite à la mauvaise patiente, il y a onze jours. Que faites-vous ?",
+    options:[
+      {txt:"Refaire discrètement les deux bilans et attendre les résultats avant d'informer qui que ce soit.",
+       ok:false,
+       why:"Vous différez une information que la patiente a le droit de connaître immédiatement — elle vit depuis onze jours avec un diagnostic qui n'est pas le sien. Et la seconde patiente, elle, ignore un résultat qui la concerne peut-être. La discrétion ici est une rétention d'information."},
+      {txt:"Signaler en urgence, informer sans délai la patiente qui a reçu l'annonce erronée, refaire les prélèvements des deux patientes sous contrôle actif d'identité, et réévaluer l'isolement à la lumière des résultats vérifiés.",
+       ok:true,
+       why:"L'annonce faite est un dommage en soi, indépendant du résultat biologique : elle exige une information immédiate et un accompagnement. Les deux patientes doivent être reprélevées, parce qu'aucun des deux résultats n'est fiable — on ne sait pas seulement que l'un est mal attribué, on ne sait plus lequel est lequel."},
+      {txt:"Maintenir l'isolement par précaution jusqu'à la fin du trimestre, le temps de clarifier la situation.",
+       ok:false,
+       why:"Un isolement décidé sur une donnée dont on sait qu'elle est mal attribuée n'est plus une précaution, c'est une contrainte sans fondement — avec son coût organisationnel et son impact sur la patiente. Le doute se lève par un nouveau prélèvement en quelques jours, pas par une temporisation trimestrielle."},
+      {txt:"Corriger le résultat dans les deux dossiers et considérer l'incident clos : aucune conséquence clinique n'est survenue.",
+       ok:false,
+       why:"Une annonce erronée de sérologie positive et un isolement injustifié sont des conséquences. Et une correction non signalée prive l'établissement du seul signal dont il dispose : trois événements similaires le même jour dans la même salle ne sont pas une malchance, c'est un processus sans barrière."}
+    ]
+  }
+},
+/* ---------- SÉQUENCE 4 ---------- */
+{
+  mins:4, theme:"Cas 3 · HAD · le nom qui circule",
+  title:"Grondin, née Técher",
+  lede:"Mme Marie Grondin, née Técher, 68 ans. Sortie d'hospitalisation, admission en HAD pour antibiothérapie IV, sur la base d'un compte-rendu transmis par fax.",
+  legend:{a:"Dossier HAD — identité TECHER (nom du CRH)", b:"Dossier laboratoire — identité GRONDIN (nom d'usage)", n:"Acte de coordination"},
+  events:[
+    {t:"J0", track:"n", tag:"Appel du CHU",
+     txt:"L'interne du CHU appelle l'IDEC et transmet par fax le compte-rendu d'hospitalisation au nom de Mme TECHER Marie. Côté CHU, l'INS de la patiente n'a jamais été qualifiée."},
+    {t:"J0", track:"a", tag:"Ouverture du dossier HAD",
+     txt:"Un dossier est ouvert en HAD sur la seule base du CRH, sous le nom TECHER. L'évaluation de préadmission est réalisée par téléphone. Aucune pièce d'identité n'est reçue ; l'ordonnance de sortie pour les bilans biologiques est remise directement à la patiente."},
+    {t:"J+2", track:"n", tag:"Recherche du bilan",
+     txt:"La coordinatrice appelle le laboratoire pour récupérer le bilan : aucune biologie n'est enregistrée au nom de TECHER. L'IDEL confirme pourtant avoir réalisé le prélèvement."},
+    {t:"J+2", track:"a", tag:"Nouveau prélèvement",
+     txt:"Dans le doute, le médecin coordonnateur fait reponctionner la patiente."},
+    {t:"J+3", track:"b", tag:"Qualification par le laboratoire",
+     txt:"L'ICS récupère la carte d'identité de la patiente : GRONDIN Marie, née TECHER. Le laboratoire, qui avait déjà cette patiente enregistrée sous GRONDIN Marie, qualifie l'identité et retrouve le premier prélèvement."},
+    {t:"Conséquence", track:"b", tag:"Conséquence",
+     txt:"Retard de prise en charge, et une ponction inutile pour la patiente."}
+  ],
+  errors:[1,3],
+  barriers:[
+    {when:"J0", txt:"<b>Entrée de l'erreur.</b> Le dossier est ouvert sur la seule base du CRH, sans qu'aucune pièce d'identité ne soit demandée à la patiente ni recueillie par l'IDEL lors de sa première visite. Le nom transmis par le CHU n'était pas faux — c'est bien son nom de naissance — mais rien ne permettait de le vérifier. Barrière : toute admission issue d'un CRH externe reste au statut provisoire tant qu'une pièce d'identité à haute confiance n'a pas été recueillie, même en évaluation téléphonique."},
+    {when:"J+2", txt:"L'absence totale de résultats, alors que l'IDEL confirme avoir prélevé, est un signal fort de discordance d'identité — pas une preuve de perte du prélèvement. Reponctionner sans vérifier d'abord le nom de naissance fait courir à la patiente une ponction inutile et retarde encore la prise en charge. Barrière : devant une biologie introuvable malgré un prélèvement confirmé, on interroge le laboratoire sur les identités approchantes avant de reponctionner."}
+  ],
+  extraNote:"Le laboratoire n'a commis aucune erreur : il connaissait la patiente sous son identité GRONDIN depuis longtemps. C'est le dossier HAD, ouvert sans pièce, qui portait le nom incomplet.",
+  ruleTitle:"Ce qu'on en retient",
+  rule:"Une identité non qualifiée en amont — ici au CHU — se transmet telle quelle si personne ne la recontrôle en aval. Le nom de naissance reste le seul repère fiable entre deux systèmes qui ne se parlent pas : sans pièce d'identité pour le confirmer à l'admission, chaque échange avec un partenaire externe — laboratoire, pharmacie, imagerie — devient une occasion de discordance.",
+  ctq:{
+    question:"À J+3, l'identité est enfin qualifiée mais la patiente a subi un retard de prise en charge et une ponction inutile. Que faites-vous ?",
+    options:[
+      {txt:"Corriger le nom dans le dossier HAD et poursuivre la prise en charge : l'identité est désormais exacte, l'incident est clos.",
+       ok:false,
+       why:"Corriger le nom ne suffit pas. Rien ne garantit qu'aucun autre document — ordonnance, courrier, transmission — n'a circulé sous le nom TECHER entre-temps, ni que la patiente a été informée du retard qu'elle a subi. Et sans signalement, la cause — une admission validée sans pièce d'identité — reste invisible pour l'organisation."},
+      {txt:"Signaler l'événement, vérifier qu'aucun document ou prescription n'a été engagé sous le nom TECHER en dehors du dossier HAD, corriger l'identité sur la base de la pièce recueillie par l'ICS, et informer la patiente du retard survenu.",
+       ok:true,
+       why:"Quatre gestes, dans cet ordre : signaler pour que l'organisation apprenne du cas, vérifier la propagation avant de la supposer limitée au seul dossier HAD, corriger sur pièce et non sur déclaration, informer la patiente — qui a subi un retard et une ponction qu'elle n'aurait pas dû avoir."},
+      {txt:"Demander au laboratoire d'enregistrer désormais cette patiente sous le nom TECHER, pour que les deux systèmes soient alignés sur le dossier HAD.",
+       ok:false,
+       why:"C'est l'extérieur qui avait raison. Le laboratoire connaissait la patiente sous son identité d'usage depuis longtemps ; lui demander de basculer sur un nom reçu par fax, jamais confirmé sur pièce, inverserait la correction."},
+      {txt:"Considérer que l'incident s'est résolu de lui-même puisque le laboratoire a fini par retrouver le bon résultat.",
+       ok:false,
+       why:"Le laboratoire a corrigé une erreur qu'il n'avait pas commise. Rien n'a été signalé, rien n'a été vérifié en amont, et la cause — une admission validée sans aucune pièce d'identité — reste intacte pour la prochaine patiente sortant du même CHU."}
+    ]
+  }
+},
+/* ---------- SÉQUENCE 5 ---------- */
+{
+  mins:4, theme:"Cas 4 · Dialyse · statut d'identité",
+  title:"Le patient de passage",
+  lede:"Août. M. Michel Lebon, dialysé chronique en métropole, en vacances à La Réunion. Trois séances de repli demandées par son centre d'origine. Un patient chronique du centre porte le même nom de famille. La séance du lundi est assurée par une IDE remplaçante, en poste depuis quatre jours.",
+  legend:{a:"M. Lebon — patient de passage", b:"M. Lebon — patient chronique du centre", n:"Acte administratif"},
+  events:[
+    {t:"Ven. 16:40", track:"n", tag:"Création en urgence",
+     txt:"Appel du centre d'origine. Le secrétariat crée un dossier à partir du nom épelé au téléphone. Aucune pièce d'identité, aucun justificatif transmis, aucun statut d'identité renseigné."},
+    {t:"Lun. 07:30", track:"a", tag:"Accueil",
+     txt:"Le patient se présente avec sa carte Vitale et sa pièce d'identité en main. Personne ne les demande : le dossier existe déjà."},
+    {t:"Lun. 07:45", track:"n", tag:"Recherche dans le DPI",
+     txt:"L'IDE remplaçante, qui ne connaît aucun patient du centre, saisit « LEBON » dans le DPI. Deux résultats. Elle ouvre le premier de la liste — le patient chronique, dont le dossier est complet et rassurant. Aucun binôme, aucun double contrôle."},
+    {t:"Lun. 08:00", track:"b", tag:"Branchement",
+     txt:"Poids sec, débit, héparine et statut sérologique du patient chronique appliqués au patient de passage."},
+    {t:"Lun. 12:00", track:"b", tag:"Fin de séance",
+     txt:"Compte-rendu de séance, poids de sortie et incidents versés au dossier du patient chronique."},
+    {t:"J+30", track:"b", tag:"Conséquence",
+     txt:"Le patient chronique reçoit une convocation mentionnant des séances qu'il n'a pas eues. Son suivi de poids sec sur trois mois devient ininterprétable."}
+  ],
+  errors:[0,1,2],
+  barriers:[
+    {when:"Ven. 16:40", txt:"<b>Origine.</b> Identité créée sur une source orale, sans pièce et sans statut. Une identité recueillie au téléphone est une identité provisoire : elle sert à ne pas bloquer une prise en charge, elle n'autorise pas à soigner durablement dessus. Barrière : marquer le statut provisoire dans le DPI et bloquer l'usage clinique jusqu'à qualification sur pièce."},
+    {when:"Lun. 07:30", txt:"Pièce d'identité présente, dans la main du patient, et non recueillie. C'est la dernière occasion de qualifier l'identité créée le vendredi. Barrière : à la première présentation physique, la qualification passe avant tout acte, même si le dossier existe déjà."},
+    {when:"Lun. 07:45", txt:"Recherche par nom seul, sélection du premier résultat, par une professionnelle qui n'a aucun repère de terrain pour lever le doute. Barrière : recherche sur nom de naissance + date de naissance au minimum, alerte homonymie paramétrée, et double contrôle systématique pour tout nouvel arrivant ou remplaçant sur son premier mois."}
+  ],
+  extraNote:"Le remplacement n'est pas la cause : une IDE titulaire aurait pu commettre la même erreur. Mais il retire la dernière barrière informelle — la reconnaissance de visage — sur laquelle l'organisation s'appuyait sans le savoir.",
+  ruleTitle:"Ce qu'on en retient",
+  rule:"Le <b>statut d'identité n'est pas un détail administratif, c'est une autorisation d'usage</b>. Les patients de repli, de vacances et d'astreinte sont le gisement principal d'identités provisoires jamais qualifiées. Et toute organisation qui tient grâce à la connaissance des visages tombe le jour où arrive quelqu'un qui ne les connaît pas.",
+  ctq:{
+    question:"L'erreur est découverte le lundi à 12h30. Il reste deux séances de repli à assurer cette semaine. Que faites-vous ?",
+    options:[
+      {txt:"Basculer les données de la séance vers le bon dossier en fin de journée et informer le centre d'origine du patient.",
+       ok:false,
+       why:"Le déplacement des données est nécessaire mais ce n'est pas à vous de le faire, et ce n'est pas le point urgent. Surtout, vous laissez inchangée la cause : l'identité du patient de passage est toujours non qualifiée, et les deux séances suivantes se dérouleront dans les mêmes conditions."},
+      {txt:"Signaler l'événement, qualifier immédiatement l'identité du patient de passage sur sa pièce d'identité, vérifier que les paramètres de dialyse appliqués ne lui ont pas fait courir de risque, et faire retirer par la CIV les données versées dans le dossier du patient chronique.",
+       ok:true,
+       why:"La qualification d'identité est le geste qui empêche la récidive dès mercredi — c'est pour cela qu'elle vient tôt. Le contrôle des paramètres appliqués est spécifique à la dialyse : poids sec, débit et héparine d'un autre patient ne sont pas une erreur documentaire, ce sont des réglages machine déjà administrés. Et le retrait des données du dossier du chronique relève de la CIV."},
+      {txt:"Poursuivre les deux séances restantes sur le dossier déjà utilisé, pour ne pas rompre la continuité des données, puis régulariser au départ du patient.",
+       ok:false,
+       why:"Vous choisissez d'aggraver sciemment la collision pour préserver une continuité qui est elle-même fausse. La continuité que vous protégez est celle du dossier du patient chronique, qui n'a jamais été dialysé ces jours-là."},
+      {txt:"Supprimer le dossier du patient de passage, resté vide et devenu inutile, et ne conserver que celui qui a servi.",
+       ok:false,
+       why:"C'est le pire des choix. Vous supprimez la seule identité correcte de la situation et vous consacrez le dossier collisionné comme référence. Aucune identité numérique ne se supprime en dehors de la CIV."}
+    ]
+  }
+},
+/* ---------- SÉQUENCE 6 ---------- */
+{
+  mins:4, theme:"Cas 5 · Administratif · la correction",
+  title:"La fusion bien intentionnée",
+  lede:"M. Jean Payet, 77 ans, et M. Jean Payet, 52 ans. Père et fils, même adresse, même médecin traitant, tous deux pris en charge la même semaine. Deux dossiers légitimes.",
+  legend:{a:"M. Payet, 77 ans — le père", b:"M. Payet, 52 ans — le fils", n:"Acte administratif"},
+  events:[
+    {t:"14:20", track:"n", tag:"Détection",
+     txt:"L'assistante médicale repère deux dossiers « PAYET Jean », même adresse, même médecin traitant, créés à trois jours d'intervalle. Elle suspecte un doublon."},
+    {t:"14:25", track:"n", tag:"Comparaison",
+     txt:"Elle compare : tout concorde, sauf la date de naissance — 02/06/1949 et 02/06/1974. Un seul chiffre d'écart. Elle conclut à une faute de frappe."},
+    {t:"14:30", track:"n", tag:"Demande de fusion",
+     txt:"Elle adresse directement une demande de fusion à l'administrateur du DPI. Aucun signalement n'est déposé, la cellule d'identitovigilance n'est pas saisie."},
+    {t:"16:10", track:"n", tag:"Exécution",
+     txt:"L'administrateur exécute la demande telle qu'elle lui parvient. Le circuit ne prévoit aucune validation par un membre opérationnel de la CIV avant fusion."},
+    {t:"J+4", track:"b", tag:"Conséquence",
+     txt:"Le fils reçoit une adaptation posologique d'anticoagulant calculée sur la fonction rénale et le poids de son père."},
+    {t:"J+9", track:"a", tag:"Conséquence",
+     txt:"Le père et le fils partagent désormais un dossier unique dont plus personne ne sait démêler quelle ligne appartient à qui."}
+  ],
+  errors:[1,2],
+  barriers:[
+    {when:"14:25", txt:"<b>Entrée de l'erreur.</b> Une divergence sur un trait strict — la date de naissance — est requalifiée en faute de frappe, sur une simple intuition. Or une divergence sur nom de naissance, premier prénom, date de naissance, sexe ou lieu de naissance <b>interdit</b> de conclure au doublon tant qu'elle n'a pas été démentie sur pièce. À 14h25, la seule conclusion possible était : deux personnes différentes."},
+    {when:"14:30", txt:"<b>La barrière obligatoire est court-circuitée.</b> Une suspicion de doublon ne se règle jamais entre le demandeur et l'administrateur : elle doit faire l'objet d'un signalement, et la fusion doit être validée par un membre opérationnel de la cellule d'identitovigilance, sur pièce d'identité à haute confiance. C'est ce passage obligé qui aurait arrêté le cas — parce qu'un regard extérieur, non engagé dans l'hypothèse, voit immédiatement vingt-cinq ans d'écart."}
+  ],
+  extraNote:"L'exécution de 16h10 n'est pas une faute individuelle de l'administrateur : il applique une demande arrivée par un circuit qui ne comporte aucun point de contrôle. C'est le circuit qui est en cause, pas la personne.",
+  ruleTitle:"Ce qu'on en retient",
+  rule:"C'est le cas le plus dangereux des six, parce qu'il est <b>irréversible</b>. Une fusion réalisée entre deux personnes différentes crée une collision que la défusion ne répare qu'imparfaitement : les données sont déjà mélangées, et plus rien ne dit à qui appartient quelle ligne. Un doublon mal diagnostiqué coûte infiniment plus cher qu'un doublon laissé en place.",
+  ctq:{
+    question:"À J+9, on comprend que la fusion a réuni deux personnes différentes. Que faites-vous ?",
+    options:[
+      {txt:"Demander immédiatement la défusion à l'administrateur du DPI, pour revenir à l'état antérieur.",
+       ok:false,
+       why:"Il n'y a plus d'état antérieur récupérable : neuf jours de données ont été écrites dans le dossier unique, sans marquage d'origine. Et vous emprunteriez à nouveau le circuit court qui a produit l'incident — demandeur vers administrateur, sans la CIV."},
+      {txt:"Signaler en urgence, alerter le prescripteur pour reprendre l'adaptation d'anticoagulant du fils sur ses propres données, et saisir la cellule d'identitovigilance qui décidera de la conduite sur pièces d'identité.",
+       ok:true,
+       why:"Un anticoagulant dosé sur la fonction rénale d'un homme de vingt-cinq ans plus âgé est un risque hémorragique actuel : c'est la priorité absolue. La suite — défusion ou reconstruction, et selon quelles sources — est une décision technique et documentaire qui appartient à la CIV, sur les pièces d'identité des deux hommes."},
+      {txt:"Recréer un dossier pour le fils et y recopier les éléments qui semblent lui appartenir.",
+       ok:false,
+       why:"« Qui semblent lui appartenir » est exactement le raisonnement qui a créé le problème à 14h25. Répartir des données au jugement, sans source externe, fabrique une seconde collision et laisse la première en place."},
+      {txt:"Bloquer les deux dossiers en lecture seule et attendre la prochaine réunion du comité d'identitovigilance.",
+       ok:false,
+       why:"Le blocage est une bonne intuition, mais le délai est incompatible avec la situation : une décision thérapeutique erronée est active. La cellule opérationnelle se saisit en continu, elle n'attend pas la réunion plénière — c'est précisément la différence entre la cellule et le comité."}
+    ]
+  }
+},
+/* ---------- SÉQUENCE 7 ---------- */
+{
+  mins:4, theme:"Cas 6 · HAD ↔ Dialyse · l'interface",
+  title:"Le patient qui existe deux fois",
+  lede:"M. Ah-Fat, 74 ans, est dialysé dans le centre trois fois par semaine depuis deux ans. Son dossier administratif y existe, avec son IPP. Il est aujourd'hui pris en charge en HAD pour une plaie du talon. Un cousin porte le même nom et est également suivi en HAD.",
+  legend:{a:"M. Ah-Fat — le patient dialysé", b:"M. Ah-Fat — le cousin, HAD seul", n:"Acte administratif ou de coordination"},
+  events:[
+    {t:"J−30", track:"n", tag:"Admission en HAD",
+     txt:"Le patient est enregistré en HAD. Aucune recherche n'est faite dans le référentiel d'identités de l'établissement : un dossier neuf est créé, avec un IPP différent de celui qu'il porte en dialyse depuis deux ans."},
+    {t:"Lun. 11:00", track:"a", tag:"En séance",
+     txt:"L'IDE de dialyse constate que la plaie du talon suinte davantage. Elle décide d'alerter l'HAD."},
+    {t:"Lun. 11:05", track:"n", tag:"Transmission orale",
+     txt:"« C'est M. Ah-Fat, celui du poste 2, sa plaie a bougé, il faudrait repasser aujourd'hui. »"},
+    {t:"Lun. 11:20", track:"b", tag:"Saisie côté HAD",
+     txt:"L'IDEC ouvre le DPI HAD. Deux M. Ah-Fat y sont suivis. Elle choisit celui qui a déjà un antécédent de plaie documenté — le cousin."},
+    {t:"Mar. 15:00", track:"b", tag:"Visite",
+     txt:"Photo de plaie et mesure d'évolution versées au dossier du cousin, qui a effectivement une plaie, à un autre stade."},
+    {t:"Jeu.", track:"b", tag:"Conséquence",
+     txt:"Le médecin coordonnateur modifie le protocole de pansement du cousin sur une photo qui n'est pas la sienne, et la plaie du patient dialysé n'est pas reprise."}
+  ],
+  errors:[0,2,3],
+  barriers:[
+    {when:"J−30", txt:"<b>Origine.</b> Un patient connu de l'établissement depuis deux ans se voit attribuer un second IPP. C'est un doublon créé de toutes pièces, à l'intérieur du même établissement, entre deux activités. Barrière : recherche obligatoire dans le référentiel unique avant toute création, sur nom de naissance + date de naissance ; et l'INS comme clé de rapprochement entre les deux systèmes."},
+    {when:"Lun. 11:05", txt:"Transmission orale identifiant le patient par son nom et un numéro de poste. Un poste n'existe pas côté HAD : l'information ne peut pas être vérifiée par celle qui la reçoit. Barrière : trois traits stricts obligatoires pour toute transmission franchissant une frontière d'activité, plus l'IPP ou l'INS."},
+    {when:"Lun. 11:20", txt:"Homonyme départagé au jugement clinique — « celui qui a déjà une plaie ». La vraisemblance médicale n'est jamais un critère d'identification ; ici elle désigne précisément le mauvais patient. Barrière : un doute d'identité se lève en rappelant et en redemandant les traits stricts, jamais en raisonnant."}
+  ],
+  extraNote:"L'alerte de 11h00 est un bon réflexe clinique : c'est exactement ce qu'on attend d'une IDE de dialyse qui voit une plaie évoluer. Elle n'est pas en cause — ce qui est en cause, c'est le canal par lequel elle doit la faire passer.",
+  ruleTitle:"Ce qu'on en retient",
+  rule:"Ici le doublon et la collision sont le même événement : le second IPP créé à J−30 <b>est</b> ce qui rend la collision possible trente jours plus tard. C'est le risque structurel propre à un établissement qui exerce HAD et dialyse pour les mêmes patients — deux logiciels, deux référentiels, des transmissions orales quotidiennes. Tant que l'INS n'est pas la clé de rapprochement, chaque interface entre les deux activités est un point d'entrée.",
+  ctq:{
+    question:"Vous découvrez la situation le jeudi : deux IPP pour le patient dialysé, et des données de plaie versées chez son cousin. Que faites-vous ?",
+    options:[
+      {txt:"Fusionner sans délai le dossier HAD et le dossier dialyse du patient : il s'agit de la même personne, le doublon est certain.",
+       ok:false,
+       why:"Le doublon est certain, et pourtant c'est un piège. Le dossier HAD est déjà collisionné avec celui du cousin ; fusionner maintenant scellerait le mélange dans un dossier unique dont plus rien ne pourra être démêlé. On traite la collision d'abord, le doublon ensuite — et jamais sans validation de la CIV."},
+      {txt:"Signaler, alerter le médecin coordonnateur pour annuler le changement de protocole du cousin et faire reprendre la plaie du patient dialysé, puis saisir la cellule d'identitovigilance : retrait des données étrangères d'abord, rapprochement des deux IPP ensuite.",
+       ok:true,
+       why:"Deux patients sont en risque simultanément — l'un traité sur des données qui ne sont pas les siennes, l'autre pas traité du tout. L'ordre des opérations est ici la difficulté du cas : dépolluer le dossier du cousin avant de toucher au doublon, faute de quoi le rapprochement des IPP rendrait la collision définitive."},
+      {txt:"Déplacer la photo dans le bon dossier et demander à l'IDE de dialyse de transmettre par écrit à l'avenir.",
+       ok:false,
+       why:"Vous corrigez le symptôme et vous déplacez la responsabilité sur la personne qui a eu le bon réflexe clinique. La cause est structurelle : deux IPP pour le même patient et aucun identifiant partagé entre les deux logiciels. Une consigne d'écrit ne la traite pas."},
+      {txt:"Créer un troisième dossier, propre, regroupant l'ensemble des données du patient dialysé, et archiver les deux autres.",
+       ok:false,
+       why:"Un troisième IPP pour la même personne aggrave le doublon, et « regrouper l'ensemble des données » revient à recopier au jugement des lignes dont on ne sait plus à qui elles appartiennent — le cousin inclus."}
+    ]
+  }
+}
+];
+
+var $=function(id){return document.getElementById(id)};
+
+var host=$("cases"), anchor=host.nextElementSibling;
+CASES.forEach(function(C,ci){
+  var sec=document.createElement("section");
+  sec.className="step"; sec.setAttribute("data-mins",C.mins);
+  var lis="";
+  C.events.forEach(function(ev,i){
+    lis+='<li><button class="ev" type="button" data-c="'+ci+'" data-i="'+i+'" data-track="'+ev.track+'">'+
+         '<span class="box"></span><span class="t">'+ev.t+'</span><span class="track"></span>'+
+         '<span class="txt"><span class="tag">'+ev.tag+'</span>'+ev.txt+'</span></button></li>';
+  });
+  sec.innerHTML=
+    '<p class="eyebrow">Séquence '+(ci+3)+' sur 9 · '+C.mins+' minutes · '+C.theme+'</p>'+
+    '<h2>'+C.title+'</h2>'+
+    '<p class="lede">'+C.lede+'</p>'+
+    '<div class="panel">'+
+      '<div class="caseband">'+
+        '<span class="who a"><i></i>'+C.legend.a+'</span>'+
+        '<span class="who b"><i></i>'+C.legend.b+'</span>'+
+        '<span class="who n"><i></i>'+C.legend.n+'</span>'+
+      '</div>'+
+      '<ul class="tl" id="tl'+ci+'">'+lis+'</ul>'+
+      '<p class="note" style="margin-top:18px">Cochez <b>tous</b> les moments où une erreur a été commise. Plusieurs réponses sont possibles. Un moment où la faute se propage n\'est pas un moment où elle est commise.</p>'+
+      '<div class="actionbar" id="ab'+ci+'">'+
+        '<button class="btn" data-check="'+ci+'" disabled>Valider mes réponses</button>'+
+        '<span class="counter" id="cnt'+ci+'">Aucun moment sélectionné</span>'+
+      '</div>'+
+      '<div class="verdict" id="v'+ci+'"></div>'+
+      '<div class="actionbar hidden" id="ab2'+ci+'">'+
+        '<button class="btn" data-open="'+ci+'">Choisir la conduite à tenir</button>'+
+        '<span class="counter">Une seule réponse conforme</span>'+
+      '</div>'+
+      '<div class="verdict" id="w'+ci+'"></div>'+
+    '</div>';
+  host.parentNode.insertBefore(sec, anchor);
+});
+
+var steps=[].slice.call(document.querySelectorAll(".step"));
+var idx=0, started=false, t0=0, tick=null;
+var picks=CASES.map(function(){return []});
+var done=CASES.map(function(){return false});
+var caseComplete=CASES.map(function(){return false});
+var results=CASES.map(function(){return null});
+var ctqScore={ok:0,total:0};
+var introQuestions=[].slice.call(steps[1].querySelectorAll(".quizblock .q"));
+var finalQuestions=[].slice.call(steps[steps.length-1].querySelectorAll(".quizblock .q"));
+var introAnswered=0, introCaseComplete=false, finalAnswered=0, finished=false;
+
+var totalMin=steps.reduce(function(s,el){return s+parseInt(el.getAttribute("data-mins"),10)},0);
+$("total").textContent="/ "+totalMin+":00";
+
+var spine=$("spine");
+steps.forEach(function(){spine.appendChild(document.createElement("i"))});
+var bars=[].slice.call(spine.children);
+
+function pad(n){return (n<10?"0":"")+n}
+function fmt(s){return pad(Math.floor(s/60))+":"+pad(s%60)}
+function runClock(){
+  var s=Math.floor((Date.now()-t0)/1000), c=$("clock");
+  c.firstElementChild.textContent=fmt(s);
+  c.classList.toggle("over", s>totalMin*60);
+}
+function startClock(){
+  if(started) return;
+  started=true; t0=Date.now(); runClock(); tick=setInterval(runClock,1000);
+}
+$("main").addEventListener("click",startClock,{once:true});
+
+function refreshNext(){
+  var last=idx===steps.length-1;
+  var allowed=true;
+  if(idx===1) allowed=introAnswered===introQuestions.length && introCaseComplete;
+  if(idx>=2 && idx<=CASES.length+1) allowed=caseComplete[idx-2];
+  if(last) allowed=finalAnswered===finalQuestions.length && !finished;
+  $("next").disabled=!allowed;
+  $("next").textContent=last ? (finished ? "Atelier terminé" : "Terminer l'atelier") : "Suivant";
+
+  if(idx===1 && introAnswered<introQuestions.length){
+    $("hint").textContent="Introduction : "+introAnswered+" / "+introQuestions.length+" réponses";
+  } else if(idx===1 && !introCaseComplete){
+    $("hint").textContent="Cas d'école : choisissez la conduite à tenir";
+  } else if(idx===1){
+    $("hint").textContent="Introduction terminée · vous pouvez continuer";
+  } else if(idx>=2 && idx<=CASES.length+1 && !caseComplete[idx-2]){
+    $("hint").textContent=done[idx-2]
+      ? "Étape 2/2 : choisissez la conduite à tenir"
+      : "Étape 1/2 : validez la chronologie";
+  } else if(last && !finished){
+    $("hint").textContent="Synthèse : "+finalAnswered+" / "+finalQuestions.length+" réponses";
+  } else if(finished){
+    $("hint").textContent="Parcours terminé";
+  } else if(idx>=2 && idx<=CASES.length+1){
+    $("hint").textContent="Cas terminé · vous pouvez continuer";
+  }
+}
+
+function show(i){
+  idx=Math.max(0,Math.min(steps.length-1,i));
+  steps.forEach(function(s,n){s.classList.toggle("on",n===idx)});
+  bars.forEach(function(b,n){b.className = n<idx?"done":(n===idx?"now":"")});
+  $("prev").disabled = idx===0;
+  var m=steps[idx].getAttribute("data-mins");
+  $("budget").textContent="Séquence "+(idx+1)+" / "+steps.length+" · "+m+" min";
+  $("hint").textContent="Temps conseillé : "+m+" min";
+  if(idx===steps.length-1) updateScore();
+  refreshNext();
+  window.scrollTo({top:0,behavior:"instant"});
+}
+function finishWorkshop(){
+  if(finalAnswered!==finalQuestions.length || finished) return;
+  finished=true;
+  clearInterval(tick);
+  $("completion").classList.remove("hidden");
+  refreshNext();
+  try{ $("completion").scrollIntoView({behavior:"smooth",block:"center"}) }catch(err){ try{ $("completion").scrollIntoView(true) }catch(e2){} }
+}
+function advance(){
+  if($("next").disabled) return;
+  startClock();
+  if(idx===steps.length-1){finishWorkshop();return;}
+  show(idx+1);
+}
+$("next").addEventListener("click",advance);
+$("prev").addEventListener("click",function(){show(idx-1)});
+document.addEventListener("keydown",function(e){
+  if(e.target.matches("input,textarea")) return;
+  if($("mask").classList.contains("open")){ if(e.key==="Escape") closeModal(); return; }
+  if(e.key==="ArrowRight"){advance()}
+  if(e.key==="ArrowLeft"){show(idx-1)}
+});
+
+[].forEach.call(document.querySelectorAll(".quizblock .q"),function(q){
+  var ans=parseInt(q.getAttribute("data-answer"),10);
+  var opts=[].slice.call(q.querySelectorAll(".opt"));
+  opts.forEach(function(btn,i){
+    btn.addEventListener("click",function(){
+      opts.forEach(function(b,j){
+        b.disabled=true;
+        b.classList.add(j===ans?"right":(j===i?"wrong":"picked"));
+        if(j!==ans&&j!==i) b.classList.remove("picked");
+      });
+      q.querySelector(".fb").classList.add("show");
+      var step=q.closest(".step");
+      if(step===steps[1]) introAnswered++;
+      if(step===steps[steps.length-1]) finalAnswered++;
+      refreshNext();
+    });
+  });
+});
+
+document.addEventListener("click",function(e){
+  var b=e.target.closest ? e.target.closest(".ev") : null;
+  if(!b) return;
+  var ci=parseInt(b.getAttribute("data-c"),10), i=parseInt(b.getAttribute("data-i"),10);
+  if(done[ci]) return;
+  var arr=picks[ci], p=arr.indexOf(i);
+  if(p>-1){arr.splice(p,1); b.classList.remove("sel")}
+  else {arr.push(i); b.classList.add("sel")}
+  var n=arr.length;
+  $("cnt"+ci).textContent = n===0 ? "Aucun moment sélectionné"
+    : (n===1 ? "1 moment sélectionné" : n+" moments sélectionnés");
+  document.querySelector('[data-check="'+ci+'"]').disabled = n===0;
+});
+
+document.addEventListener("click",function(e){
+  var b=e.target.closest ? e.target.closest("[data-check]") : null;
+  if(!b||b.disabled) return;
+  checkTimeline(parseInt(b.getAttribute("data-check"),10));
+});
+
+var current=null, currentCtq=null, chosen=null;
+
+function openModal(key,ctq,kicker){
+  current=key; currentCtq=ctq; chosen=null;
+  $("m-kicker").textContent=kicker;
+  $("m-title").textContent=ctq.question;
+  $("m-warn").classList.remove("show");
+  var list=$("m-list");
+  list.innerHTML="";
+  ctq.options.forEach(function(o,i){
+    var b=document.createElement("button");
+    b.type="button"; b.className="ctq-opt"; b.setAttribute("data-pick",i);
+    b.innerHTML='<span class="dot"></span><span>'+o.txt+'</span>';
+    b.addEventListener("click",function(){
+      chosen=i;
+      [].forEach.call(list.children,function(c,j){c.classList.toggle("sel",j===i)});
+      $("m-warn").classList.remove("show");
+    });
+    list.appendChild(b);
+  });
+  $("mask").classList.add("open");
+  document.body.classList.add("locked");
+}
+function closeModal(){
+  $("mask").classList.remove("open");
+  document.body.classList.remove("locked");
+}
+$("m-cancel").addEventListener("click",closeModal);
+$("mask").addEventListener("click",function(e){ if(e.target===$("mask")) closeModal(); });
+
+$("m-go").addEventListener("click",function(){
+  if(chosen===null){ $("m-warn").classList.add("show"); return; }
+  var k=current, pick=chosen;
+  closeModal();
+  if(k==="s1") revealS1(pick); else reveal(k,pick);
+});
+
+document.addEventListener("click",function(e){
+  var b=e.target.closest ? e.target.closest("[data-open]") : null;
+  if(!b||b.disabled) return;
+  var ci=parseInt(b.getAttribute("data-open"),10);
+  openModal(ci,CASES[ci].ctq,"Conduite à tenir · cas "+(ci+1));
+});
+$("s1-open").addEventListener("click",function(){
+  openModal("s1",CTQ_S1,"Conduite à tenir · cas d'école");
+});
+
+function ctqBlock(ctq,pick){
+  var good=-1;
+  ctq.options.forEach(function(o,i){ if(o.ok) good=i; });
+  var isOk = pick===good;
+  ctqScore.total++; if(isOk) ctqScore.ok++;
+  var h='<div class="ctq-res"><span class="head">Conduite à tenir — '+
+        (isOk?"Vrai · réponse conforme":"Faux · réponse non conforme")+'</span>';
+  h+='<div class="row '+(isOk?"good":"bad")+'"><span class="who2">Votre choix · '+(isOk?"vrai":"faux")+'</span>'+
+     '<p class="prop">'+ctq.options[pick].txt+'</p>'+
+     '<p class="why">'+ctq.options[pick].why+'</p></div>';
+  if(!isOk){
+    h+='<div class="row good"><span class="who2">La réponse conforme</span>'+
+       '<p class="prop">'+ctq.options[good].txt+'</p>'+
+       '<p class="why">'+ctq.options[good].why+'</p></div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+function revealS1(pick){
+  $("s1-open").disabled=true;
+  var box=$("s1-verdict");
+  box.innerHTML=
+    ctqBlock(CTQ_S1,pick)+
+    '<div class="rule-out"><h3>Ce que ce cas démontre</h3>'+
+    '<p>Un doublon n\'est pas seulement une gêne : c\'est une <b>zone d\'ambiguïté ouverte</b>. Tant qu\'il existe, chaque document entrant peut atterrir dans l\'un ou l\'autre dossier — et personne ne peut dire lequel est le bon. La fusion referme le doublon mais <b>scelle la collision à l\'intérieur</b>. Ce qui aurait tout évité n\'est pas une meilleure fusion : c\'est de ne jamais avoir créé le second dossier, et de traiter le doublon dans les 72 heures suivant sa détection.</p></div>';
+  box.classList.add("show");
+  introCaseComplete=true;
+  refreshNext();
+  box.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function checkTimeline(ci){
+  var C=CASES[ci], ul=$("tl"+ci), box=$("v"+ci);
+  if(done[ci]) return;
+  done[ci]=true;
+  ul.classList.add("revealed");
+  document.querySelector('[data-check="'+ci+'"]').disabled=true;
+
+  var first=Math.min.apply(null,C.errors);
+  [].forEach.call(ul.querySelectorAll(".ev"),function(b,i){
+    if(C.errors.indexOf(i)>-1) b.classList.add("err");
+    if(i>=first) b.classList.add("tainted");
+  });
+
+  var hit=0, extra=0;
+  picks[ci].forEach(function(i){ if(C.errors.indexOf(i)>-1) hit++; else extra++; });
+  results[ci]={hit:hit,total:C.errors.length,extra:extra};
+
+  var stamp,msg;
+  if(hit===C.errors.length && extra===0){
+    stamp='<span class="stamp hit">Complet</span>';
+    msg="Vous avez identifié les "+C.errors.length+" moments d'erreur, sans en ajouter.";
+  } else if(hit>0){
+    stamp='<span class="stamp near">Partiel</span>';
+    msg=hit+" moment"+(hit>1?"s":"")+" d'erreur sur "+C.errors.length+" identifié"+(hit>1?"s":"")+
+        (extra? ", et "+extra+" moment"+(extra>1?"s":"")+" retenu"+(extra>1?"s":"")+" à tort." : ".");
+  } else {
+    stamp='<span class="stamp miss">À revoir</span>';
+    msg="Aucun des moments d'erreur n'a été retenu. Les moments cochés sont des conséquences, pas des causes.";
+  }
+
+  var bl="";
+  C.barriers.forEach(function(x){
+    bl+='<li><span class="when">'+x.when+'</span><span>'+x.txt+'</span></li>';
+  });
+
+  box.innerHTML=
+    stamp+'<p style="font-size:1.05rem">'+msg+'</p>'+
+    '<h3 style="margin-top:20px">Les moments d\'erreur</h3>'+
+    '<ul class="barriers">'+bl+'</ul>'+
+    (C.extraNote?'<p class="note" style="margin-top:20px">'+C.extraNote+'</p>':'');
+  box.classList.add("show");
+  $("ab2"+ci).classList.remove("hidden");
+  refreshNext();
+  box.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function reveal(ci,pick){
+  var C=CASES[ci], box=$("w"+ci);
+  if(box.classList.contains("show")) return;
+  $("ab2"+ci).classList.add("hidden");
+  box.innerHTML=
+    ctqBlock(C.ctq,pick)+
+    '<div class="rule-out"><h3>'+C.ruleTitle+'</h3><p>'+C.rule+'</p></div>';
+  box.classList.add("show");
+  caseComplete[ci]=true;
+  refreshNext();
+  box.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function updateScore(){
+  var t=0,h=0,tot=0,x=0;
+  results.forEach(function(r){ if(!r) return; t++; h+=r.hit; tot+=r.total; x+=r.extra; });
+  var s = t===0 ? "" :
+    "Cas traités : "+t+" / "+CASES.length+"  ·  moments d'erreur identifiés : "+h+" / "+tot+
+    (x? "  ·  retenus à tort : "+x : "");
+  if(ctqScore.total) s += (s?"  ·  ":"")+"conduites à tenir conformes : "+ctqScore.ok+" / "+ctqScore.total;
+  $("scoreline").textContent=s;
+}
+
+$("restart").addEventListener("click",function(){location.reload()});
+
+show(0);
+})();
+</script>
