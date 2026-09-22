@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HAD · Atelier flash : Le domicile n'est pas un service</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --paper:#D9E0DE; --card:#F7F9F8; --ink:#131E23; --ink-soft:#4C5B60;
+  --rule:#B9C4C1; --id-a:#0B6E8F; --id-b:#B5761B;
+  --alert:#A8322A; --ok:#2F6B4F; --warn:#B57314;
+  --hatch:repeating-linear-gradient(135deg,var(--id-a) 0 5px,var(--id-b) 5px 10px);
+  --display:"Space Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+*{box-sizing:border-box}
+.jswarn{background:#A8322A;color:#fff;padding:16px 22px;font-size:1rem;line-height:1.5}
+.jswarn b{display:block;font-weight:700;margin-bottom:4px}
+button{touch-action:manipulation;-webkit-tap-highlight-color:rgba(11,110,143,.15);-webkit-appearance:none;appearance:none}
+@media (hover:none){
+  .btn:hover:not([disabled]){background:var(--ink);transform:none}
+  .btn.ghost:hover:not([disabled]){background:transparent}
+  .opt:hover:not([disabled]){border-color:var(--rule)}
+  .ev:hover:not([disabled]){background:transparent}
+  .ctq-opt:hover{border-color:var(--rule)}
+  .btn:active:not([disabled]){transform:scale(.98);opacity:.85}
+  .opt:active,.ctq-opt:active,.ev:active{background:rgba(11,110,143,.10)}
+}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+body.locked{overflow:hidden}
+:focus-visible{outline:3px solid var(--id-a);outline-offset:3px}
+
+.topbar{position:sticky;top:0;z-index:50;background:var(--paper);border-bottom:1px solid var(--rule)}
+.topbar-in{max-width:1080px;margin:0 auto;padding:10px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brandmark{font-family:var(--display);font-weight:700;font-size:.74rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-soft);margin-right:auto}
+.clock{font-family:var(--mono);font-size:.9rem;font-weight:500;display:flex;align-items:baseline;gap:7px}
+.clock b{font-weight:600;font-size:1.05rem}
+.clock span{color:var(--ink-soft);font-size:.76rem}
+.clock.over b{color:var(--alert)}
+.phasebudget{font-family:var(--mono);font-size:.76rem;color:var(--ink-soft);
+  border-left:1px solid var(--rule);padding-left:16px}
+.spine{display:flex;gap:3px;max-width:1080px;margin:0 auto;padding:0 22px 9px}
+.spine i{flex:1;height:4px;background:var(--rule);border-radius:2px;transition:background .3s ease}
+.spine i.done{background:var(--ink-soft)}
+.spine i.now{background:var(--id-a)}
+
+main{max-width:1080px;margin:0 auto;padding:34px 22px 120px}
+.step{display:none;animation:rise .34s cubic-bezier(.2,.7,.3,1)}
+.step.on{display:block}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+.eyebrow{font-family:var(--display);font-size:.7rem;font-weight:700;letter-spacing:.19em;
+  text-transform:uppercase;color:var(--ink-soft);margin:0 0 12px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(2rem,5vw,3.2rem);line-height:1.02;
+  letter-spacing:-.025em;margin:0 0 18px}
+h2{font-family:var(--display);font-weight:700;font-size:clamp(1.45rem,3.3vw,2.1rem);line-height:1.1;
+  letter-spacing:-.02em;margin:0 0 14px}
+h3{font-family:var(--display);font-weight:600;font-size:1.02rem;letter-spacing:.01em;margin:0 0 8px}
+p{margin:0 0 15px;max-width:66ch}
+.lede{font-size:clamp(1.03rem,2vw,1.2rem);color:var(--ink-soft)}
+.panel{background:var(--card);border:1px solid var(--rule);border-radius:3px;padding:26px;margin:0 0 20px}
+
+.hero{position:relative;height:clamp(170px,26vw,230px);margin:0 0 30px;display:grid;place-items:center;overflow:hidden}
+.plate{position:absolute;background:var(--card);border:1px solid var(--rule);border-left:7px solid;
+  padding:14px 21px;min-width:min(320px,78vw);box-shadow:0 2px 0 rgba(19,30,35,.07)}
+.plate .fld{font-family:var(--mono);font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-soft)}
+.plate .nm{font-family:var(--display);font-weight:700;font-size:clamp(1rem,2.5vw,1.42rem);letter-spacing:-.01em}
+.plate .dob{font-family:var(--mono);font-size:.8rem;color:var(--ink-soft)}
+.plate.a{border-left-color:var(--id-a);animation:slideA 6s cubic-bezier(.5,0,.2,1) infinite}
+.plate.b{border-left-color:var(--id-b);animation:slideB 6s cubic-bezier(.5,0,.2,1) infinite}
+@keyframes slideA{0%,12%{transform:translate(-32%,-46%);opacity:1}46%,72%{transform:translate(0,-4%);opacity:.55}95%,100%{transform:translate(-32%,-46%);opacity:1}}
+@keyframes slideB{0%,12%{transform:translate(32%,46%);opacity:1}46%,72%{transform:translate(0,4%);opacity:.55}95%,100%{transform:translate(32%,46%);opacity:1}}
+.hero .merge{position:absolute;height:100%;width:min(320px,78vw);background:var(--hatch);opacity:0;
+  animation:mergeIn 6s cubic-bezier(.5,0,.2,1) infinite;mix-blend-mode:multiply}
+@keyframes mergeIn{0%,30%{opacity:0}52%,70%{opacity:.16}88%,100%{opacity:0}}
+
+button{font:inherit;cursor:pointer}
+.btn{font-family:var(--display);font-weight:600;font-size:.95rem;background:var(--ink);color:var(--card);
+  border:1px solid var(--ink);padding:13px 26px;border-radius:2px;transition:transform .12s ease,background .18s ease;
+  cursor:pointer;min-height:44px}
+.btn:hover:not([disabled]){background:#233238;transform:translateY(-1px)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover:not([disabled]){background:rgba(19,30,35,.06)}
+.btn[disabled]{opacity:.35;cursor:not-allowed;transform:none}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--paper);border-top:1px solid var(--rule)}
+.nav-in{max-width:1080px;margin:0 auto;padding:13px 22px;display:flex;gap:12px;align-items:center}
+.nav .hint{margin-left:auto;font-family:var(--mono);font-size:.74rem;color:var(--ink-soft);text-align:right}
+
+.q{border-top:1px solid var(--rule);padding:22px 0 4px}
+.q:first-of-type{border-top:0;padding-top:0}
+.q .stem{font-size:1.05rem;margin-bottom:14px;max-width:64ch}
+.q .ref{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--id-a);display:block;margin-bottom:6px}
+.opts{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.opt{font-family:var(--display);font-weight:600;font-size:.9rem;background:var(--card);color:var(--ink);
+  border:1px solid var(--rule);padding:11px 20px;border-radius:2px;transition:border-color .15s,background .15s;
+  cursor:pointer;min-height:44px}
+.opt:hover:not([disabled]){border-color:var(--ink)}
+.opt.picked{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.opt.right{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.wrong{background:var(--alert);border-color:var(--alert);color:#fff}
+.fb{display:none;border-left:3px solid var(--ink-soft);padding:2px 0 2px 16px;color:var(--ink-soft);
+  font-size:.96rem;max-width:64ch}
+.fb.show{display:block;animation:rise .25s ease}
+.fb b{color:var(--ink)}
+
+.defs{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.defs>div{padding:0 22px}
+.defs>div:first-child{border-right:1px solid var(--rule);padding-left:0}
+.defs>div:last-child{padding-right:0}
+.defs h3{color:var(--id-a)}
+.defs p{font-size:.97rem;margin-bottom:10px}
+.defs .tagline{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:1px;background:var(--rule);
+  border:1px solid var(--rule)}
+.kpi{background:var(--card);padding:16px 18px}
+.kpi b{display:block;font-family:var(--display);font-weight:700;font-size:1.75rem;line-height:1;
+  letter-spacing:-.03em;color:var(--id-a)}
+.kpi .lab{font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-soft);margin-top:7px;display:block;line-height:1.5}
+.kpi .obj{font-family:var(--mono);font-size:.64rem;color:var(--ink-soft);margin-top:5px;display:block;opacity:.8}
+
+.caseband{display:flex;gap:20px;flex-wrap:wrap;align-items:baseline;border-bottom:1px solid var(--rule);
+  padding-bottom:13px;margin-bottom:6px}
+.who{font-family:var(--mono);font-size:.76rem;letter-spacing:.03em}
+.who i{display:inline-block;width:10px;height:10px;margin-right:7px;vertical-align:-1px}
+.who.a i{background:var(--id-a)}
+.who.b i{background:var(--id-b)}
+.who.n i{background:var(--ink-soft)}
+.tl{list-style:none;margin:0;padding:0}
+.tl li{position:relative;margin:0}
+.ev{width:100%;text-align:left;background:transparent;border:0;display:grid;cursor:pointer;
+  grid-template-columns:26px 104px 14px 1fr;gap:0 14px;padding:14px 14px 14px 10px;border-radius:2px;
+  border-top:1px solid var(--rule);transition:background .15s ease}
+.tl li:first-child .ev{border-top:0}
+.ev:hover:not([disabled]){background:rgba(11,110,143,.07)}
+.ev .box{width:18px;height:18px;border:2px solid var(--rule);border-radius:2px;margin-top:3px;
+  position:relative;background:var(--card)}
+.ev.sel .box{background:var(--ink);border-color:var(--ink)}
+.ev.sel .box::after{content:"";position:absolute;left:4px;top:0;width:5px;height:10px;
+  border:solid var(--card);border-width:0 2px 2px 0;transform:rotate(43deg)}
+.ev .t{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--ink-soft);padding-top:3px}
+.ev .track{position:relative}
+.ev .track::before{content:"";position:absolute;left:5px;top:-15px;bottom:-15px;width:3px;background:var(--rule)}
+.ev .track::after{content:"";position:absolute;left:0;top:5px;width:13px;height:13px;border-radius:50%;
+  background:var(--card);border:3px solid var(--rule)}
+.ev[data-track="a"] .track::after{border-color:var(--id-a)}
+.ev[data-track="b"] .track::after{border-color:var(--id-b)}
+.ev[data-track="n"] .track::after{border-color:var(--ink-soft);border-radius:0}
+.ev.sel{background:rgba(19,30,35,.06)}
+.tl.revealed .ev{pointer-events:none}
+.tl.revealed .ev.err{background:rgba(168,50,42,.1);box-shadow:inset 3px 0 0 var(--alert)}
+.tl.revealed .ev.err .tag{color:var(--alert)}
+.tl.revealed .ev.err .box{background:var(--alert);border-color:var(--alert)}
+.tl.revealed .ev.err .box::after{content:"";position:absolute;left:4px;top:0;width:5px;height:10px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(43deg)}
+.hidden{display:none !important}
+.legend-fix{display:none;gap:8px 18px;flex-wrap:wrap;align-items:center;margin:16px 0 0;
+  padding:12px 14px;background:var(--paper);border-radius:3px}
+.tl.revealed + .legend-fix{display:flex}
+.legend-fix span{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);
+  font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
+.legend-fix i{width:13px;height:13px;border-radius:2px;display:inline-block}
+.legend-fix i.ok{background:var(--ok)}
+.legend-fix i.ko{background:var(--alert)}
+.legend-fix i.wr{background:var(--warn)}
+.ev .mark{display:none}
+.tl.revealed .ev.got .mark,
+.tl.revealed .ev.missed .mark,
+.tl.revealed .ev.wrong .mark{display:inline-block;margin-top:9px;font-family:var(--mono);
+  font-size:.62rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+  padding:4px 9px;border-radius:2px}
+.tl.revealed .ev.got .mark{background:var(--ok);color:#fff}
+.tl.revealed .ev.missed .mark{background:var(--alert);color:#fff}
+.tl.revealed .ev.wrong .mark{background:var(--warn);color:#fff}
+
+/* erreur repérée par le participant */
+.tl.revealed .ev.err.got{background:rgba(44,110,82,.10);box-shadow:inset 3px 0 0 var(--ok)}
+.tl.revealed .ev.err.got .tag{color:var(--ok)}
+.tl.revealed .ev.err.got .box{background:var(--ok);border-color:var(--ok)}
+/* moment coché à tort */
+.tl.revealed .ev.wrong{background:rgba(181,115,20,.10);box-shadow:inset 3px 0 0 var(--warn)}
+.tl.revealed .ev.wrong .box{background:var(--warn);border-color:var(--warn)}
+.tl.revealed .ev.wrong .box::after{content:"";position:absolute;left:7px;top:2px;width:2px;height:12px;
+  background:#fff;transform:rotate(45deg)}
+.tl.revealed .ev.wrong .box::before{content:"";position:absolute;left:7px;top:2px;width:2px;height:12px;
+  background:#fff;transform:rotate(-45deg)}
+.tl.revealed .ev.tainted .track::before{background:var(--hatch)}
+.tl.revealed .ev.tainted .track::after{background:var(--hatch);border-color:transparent}
+.ev .tag{display:block;font-family:var(--mono);font-size:.65rem;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-soft);margin-bottom:3px}
+.ev .txt{font-size:1rem;max-width:58ch}
+
+.actionbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:18px;
+  border-top:1px solid var(--rule);padding-top:18px}
+.counter{font-family:var(--mono);font-size:.76rem;color:var(--ink-soft)}
+
+.verdict{display:none;margin-top:22px}
+.verdict.show{display:block;animation:rise .3s ease}
+.stamp{font-family:var(--display);font-weight:700;font-size:.72rem;letter-spacing:.18em;
+  text-transform:uppercase;display:inline-block;padding:6px 14px;color:#fff;margin-bottom:14px}
+.stamp.hit{background:var(--ok)}
+.stamp.near{background:var(--id-b)}
+.stamp.miss{background:var(--alert)}
+.barriers{list-style:none;margin:16px 0 0;padding:0}
+.barriers li{border-top:1px solid var(--rule);padding:13px 0;display:grid;
+  grid-template-columns:110px 1fr;gap:16px;align-items:start}
+.barriers .when{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--alert)}
+.rule-out{margin-top:20px;padding:16px 18px;background:rgba(11,110,143,.09);border-left:3px solid var(--id-a)}
+.rule-out h3{margin-bottom:6px}
+.rule-out p{margin:0;font-size:.99rem}
+
+.ctq-res{margin-top:22px;border:1px solid var(--rule);background:var(--paper)}
+.ctq-res .head{font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-soft);padding:12px 18px;border-bottom:1px solid var(--rule)}
+.ctq-res .row{padding:15px 18px;border-bottom:1px solid var(--rule)}
+.ctq-res .row:last-child{border-bottom:0}
+.ctq-res .row.good{border-left:3px solid var(--ok)}
+.ctq-res .row.bad{border-left:3px solid var(--alert)}
+.ctq-res .who2{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;
+  display:block;margin-bottom:5px}
+.ctq-res .row.good .who2{color:var(--ok)}
+.ctq-res .row.bad .who2{color:var(--alert)}
+.ctq-res .prop{font-size:1rem;margin:0 0 8px;font-weight:600}
+.ctq-res .why{font-size:.95rem;color:var(--ink-soft);margin:0}
+
+.mask{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(19,30,35,.62);z-index:100;display:none;
+  align-items:center;justify-content:center;padding:20px}
+.mask.open{display:flex;animation:fade .2s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal{background:var(--card);border:1px solid var(--rule);border-radius:3px;
+  width:min(700px,100%);max-height:88vh;overflow-y:auto;padding:30px;
+  box-shadow:0 18px 50px rgba(19,30,35,.3);animation:rise .28s cubic-bezier(.2,.7,.3,1)}
+.modal .kicker{font-family:var(--display);font-size:.68rem;font-weight:700;letter-spacing:.19em;
+  text-transform:uppercase;color:var(--id-a);margin:0 0 10px}
+.modal h3{font-family:var(--display);font-weight:700;font-size:clamp(1.25rem,3vw,1.55rem);
+  letter-spacing:-.02em;margin:0 0 8px}
+.modal .sub{font-size:.97rem;color:var(--ink-soft);margin:0 0 22px}
+.ctq-list{display:flex;flex-direction:column;gap:10px;margin-bottom:22px}
+.ctq-opt{display:grid;grid-template-columns:24px 1fr;gap:14px;text-align:left;cursor:pointer;
+  background:var(--paper);border:1px solid var(--rule);border-radius:2px;padding:15px 17px;
+  font-family:var(--body);font-size:1rem;line-height:1.5;color:var(--ink);
+  transition:border-color .15s,background .15s}
+.ctq-opt:hover{border-color:var(--ink-soft)}
+.ctq-opt .dot{width:18px;height:18px;border:2px solid var(--rule);border-radius:50%;
+  margin-top:3px;position:relative;background:var(--card)}
+.ctq-opt.sel{border-color:var(--ink);background:var(--card)}
+.ctq-opt.sel .dot{border-color:var(--ink)}
+.ctq-opt.sel .dot::after{content:"";position:absolute;top:3px;right:3px;bottom:3px;left:3px;border-radius:50%;background:var(--ink)}
+.modal .foot{display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+  border-top:1px solid var(--rule);padding-top:18px;position:sticky;bottom:-30px;
+  background:var(--card);margin:0 -30px -30px;padding:18px 30px 22px}
+.modal .foot .warnmsg{font-family:var(--mono);font-size:.73rem;color:var(--alert);opacity:0;transition:opacity .2s}
+.modal .foot .warnmsg.show{opacity:1}
+
+.score{font-family:var(--mono);font-size:.76rem;color:var(--ink-soft)}
+.note{font-family:var(--mono);font-size:.78rem;line-height:1.7;color:var(--ink-soft);
+  border-left:2px solid var(--rule);padding-left:16px;max-width:62ch}
+
+@media (max-width:640px){
+  body{font-size:16px}
+  main{padding:26px 16px 130px}
+  .topbar-in,.spine,.nav-in{padding-left:16px;padding-right:16px}
+  .panel{padding:20px 17px}
+  .ev{grid-template-columns:24px 70px 14px 1fr;gap:0 9px;padding:13px 4px}
+  .ev .t{font-size:.71rem}
+  .barriers li{grid-template-columns:1fr;gap:4px}
+  .phasebudget{border-left:0;padding-left:0}
+  .defs{grid-template-columns:1fr}
+  .defs>div{padding:0}
+  .defs>div:first-child{border-right:0;border-bottom:1px solid var(--rule);padding-bottom:18px;margin-bottom:18px}
+  .modal{padding:22px 18px;max-height:92vh}
+  .modal .foot{margin:0 -18px -22px;padding:16px 18px 20px;bottom:-22px}
+  .modal .foot .btn{flex:1 1 auto}
+  .ctq-opt{grid-template-columns:20px 1fr;gap:11px;padding:13px 14px;font-size:.97rem}
+}
+@media print{
+  .topbar,.nav,.spine,.mask{display:none}
+  .step{display:block !important;page-break-after:always}
+  body{background:#fff}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+  .plate.a{transform:translate(-32%,-46%)}
+  .plate.b{transform:translate(32%,46%)}
+}
+
+.result-grid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:16px;align-items:stretch;margin-top:22px}
+.result-pane{border:1px solid var(--rule);background:var(--paper);border-radius:3px;overflow:hidden;min-width:0}
+.result-pane .ctq-res{margin:0;border:0;height:100%;background:transparent}
+.lesson-pane{padding:18px 20px;background:rgba(11,110,143,.075);border-top:4px solid var(--id-a)}
+.lesson-pane .pane-kicker{font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--id-a);display:block;margin-bottom:8px}
+.lesson-pane h3{margin:0 0 10px;font-size:1.05rem}
+.lesson-pane p{margin:0;font-size:1rem;line-height:1.55}
+.source-details{margin-top:14px;border:1px solid var(--rule);background:rgba(19,30,35,.03);border-radius:3px;overflow:hidden}
+.source-details summary{list-style:none;cursor:pointer;padding:13px 16px;font-family:var(--display);font-weight:700;font-size:.92rem;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.source-details summary::-webkit-details-marker{display:none}
+.source-details summary::after{content:"+";font-family:var(--mono);font-size:1.15rem;color:var(--id-a);line-height:1}
+.source-details[open] summary::after{content:"−"}
+.source-details[open] summary{border-bottom:1px solid var(--rule)}
+.sourcebox{padding:14px 16px 16px}
+.sourcebox .src-kicker{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:7px}
+.sourcebox p{margin:5px 0;font-size:.92rem;max-width:72ch}
+.sourcebox b{color:var(--ink)}
+@media (max-width:780px){.result-grid{grid-template-columns:1fr}}
+.none-btn{font-family:var(--display);font-weight:600;font-size:.86rem;background:transparent;color:var(--ink-soft);
+  border:1px dashed var(--rule);padding:10px 14px;border-radius:2px;min-height:42px}
+.none-btn.sel{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.trap-banner{margin-top:16px;padding:14px 17px;background:rgba(181,115,20,.10);border-left:3px solid var(--warn)}
+.trap-banner b{font-family:var(--display)}
+.final-results{display:grid;gap:10px;margin-top:14px}
+.final-row{display:grid;grid-template-columns:minmax(180px,1.4fr) .75fr .9fr;gap:10px;align-items:center;padding:11px 13px;border:1px solid var(--rule);background:var(--card);border-radius:3px}
+.final-row .case-name{font-family:var(--display);font-weight:600;font-size:.9rem}
+.final-row .mini{font-family:var(--mono);font-size:.7rem;letter-spacing:.03em;color:var(--ink-soft)}
+.final-row .mini.good{color:var(--ok);font-weight:700}
+.final-row .mini.bad{color:var(--alert);font-weight:700}
+.final-score{margin:0 0 12px;font-family:var(--display);font-weight:700;font-size:1.2rem}
+.final-fun{margin:12px 0 0;padding:12px 14px;background:rgba(11,110,143,.08);border-left:3px solid var(--id-a);font-family:var(--display);font-weight:600}
+@media (max-width:640px){.final-row{grid-template-columns:1fr}.final-row .mini{padding-left:2px}}
+
+</style>
+
+</head>
+<body>
+
+<noscript>
+  <div class="jswarn">
+    <b>Cette page a besoin de JavaScript pour fonctionner.</b>
+    Elle a probablement été ouverte depuis un aperçu de pièce jointe (mail, messagerie, gestionnaire de fichiers), qui bloque les scripts.
+    Enregistrez le fichier puis ouvrez-le dans Safari ou Chrome : les boutons répondront normalement.
+  </div>
+</noscript>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brandmark">HAD · Atelier flash</div>
+    <div class="phasebudget" id="budget"></div>
+    <div class="clock" id="clock"><b>00:00</b><span id="total"></span></div>
+  </div>
+  <div class="spine" id="spine"></div>
+</header>
+
+<main id="main">
+
+<section class="step on" data-mins="3">
+
+  <div class="hero" aria-hidden="true">
+    <div class="merge"></div>
+    <div class="plate a">
+      <div class="fld">Ce que l'équipe maîtrise</div>
+      <div class="nm">Le temps de la visite</div>
+      <div class="dob">30 à 60 minutes par jour</div>
+    </div>
+    <div class="plate b">
+      <div class="fld">Ce qui se passe sans elle</div>
+      <div class="nm">Le reste de la journée</div>
+      <div class="dob">23 heures sur 24</div>
+    </div>
+  </div>
+
+  <p class="eyebrow">Semaine de la Sécurité des Patients · 14-18 septembre 2026</p>
+  <h1>Le domicile<br>n'est pas un service.</h1>
+  <p class="lede">Quatre situations issues de FAP réelles et une situation construite à partir d’une procédure ASDR. Pour chacune : <b>où l’écart apparaît-il, et que fait-on maintenant ?</b></p>
+
+  <div class="panel">
+    <h3 style="margin-bottom:6px">Comment ça marche</h3>
+    <p style="margin-bottom:22px">Chaque cas se déroule en trois temps. Comptez environ quatre minutes par cas.</p>
+    <div class="defs">
+      <div>
+        <span class="tagline">Temps 1 · repérer</span>
+        <h3>Lisez la chronologie</h3>
+        <p style="margin:0">Quatre à six moments s'enchaînent. <b>Cochez tous les moments où vous repérez un écart par rapport à la pratique attendue.</b> Plusieurs réponses sont possibles. Si tout vous semble correct, choisissez « Tout est conforme, aucune erreur ».</p>
+      </div>
+      <div>
+        <span class="tagline">Temps 2 · décider</span>
+        <h3>Choisissez la conduite à tenir</h3>
+        <p style="margin:0">Le bouton ouvre quatre propositions. <b>Une seule est conforme.</b> Prenez celle que vous appliqueriez réellement, pas celle qui semble la plus prudente sur le papier.</p>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--rule);margin-top:22px;padding-top:20px">
+      <span class="tagline">Temps 3 · comprendre</span>
+      <h3 style="margin:6px 0 8px">L'analyse s'affiche</h3>
+      <p style="margin:0">Les vrais moments d'erreur apparaissent sur la chronologie, avec la barrière qui aurait dû fonctionner à chacun d'eux. Puis la réponse conforme est expliquée, y compris si vous vous êtes trompé : <b>c'est là que se trouve l'essentiel de l'atelier.</b></p>
+    </div>
+  </div>
+
+</section>
+
+<div id="cases"></div>
+
+
+<section class="step" data-mins="3">
+  <p class="eyebrow">Séquence 7 sur 7 · 3 minutes · synthèse</p>
+  <h2>Votre résultat en un coup d’œil.</h2>
+  <p class="lede">Un récap rapide : avez-vous trouvé la bonne chronologie et choisi la bonne conduite à tenir pour chaque cas ?</p>
+  <div class="panel">
+    <p class="final-score" id="finalscore">Résultat</p>
+    <div class="final-results" id="finalresults"></div>
+    <p class="final-fun" id="finalfun"></p>
+  </div>
+  <div class="panel">
+    <h3 style="margin-bottom:10px">Les 5 barrières à garder en tête</h3>
+    <div class="q"><p class="stem"><span class="ref">Stupéfiants</span><b>1.</b> Un stupéfiant est sécurisé dans le coffre. Si ce n’est pas possible, l’information remonte immédiatement.</p></div>
+    <div class="q"><p class="stem"><span class="ref">PCA</span><b>2.</b> Prescription, préparation et paramètres de la pompe doivent être cohérents entre eux.</p></div>
+    <div class="q"><p class="stem"><span class="ref">Astreinte</span><b>3.</b> Quand un relais échoue, on ne laisse pas la boucle ouverte : on s’assure que quelqu’un a réellement pris le relais.</p></div>
+    <div class="q"><p class="stem"><span class="ref">Chaîne du froid</span><b>4.</b> Un médicament thermosensible hors des conditions prévues nécessite une conduite à tenir, pas juste un retour au frigo.</p></div>
+    <div class="q"><p class="stem"><span class="ref">Retour HAD</span><b>5.</b> L’ordre des étapes compte : évaluer, faire valider le retour, puis mettre en suivi.</p></div>
+  </div>
+  <p class="score" id="scoreline"></p>
+  <button type="button" class="btn ghost" id="restart">Recommencer</button>
+</section>
+
+</main>
+
+<nav class="nav">
+  <div class="nav-in">
+    <button type="button" class="btn ghost" id="prev" disabled>Précédent</button>
+    <button type="button" class="btn" id="next">Suivant</button>
+  </div>
+</nav>
+
+<div class="mask" id="mask" role="dialog" aria-modal="true" aria-labelledby="m-title">
+  <div class="modal">
+    <p class="kicker" id="m-kicker">Conduite à tenir</p>
+    <h3 id="m-title">Que faites-vous maintenant ?</h3>
+    <p class="sub" id="m-sub">Quatre propositions. Une seule est conforme.</p>
+    <div class="ctq-list" id="m-list"></div>
+    <div class="foot">
+      <button type="button" class="btn" id="m-go">Voir l'analyse</button>
+      <button type="button" class="btn ghost" id="m-cancel">Revenir au cas</button>
+      <span class="warnmsg" id="m-warn">Choisissez une proposition avant de continuer.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var CTQ_S1=null;
+
+var S1_RULE=null;
+
+var CASES=[{"mins":4,"theme":"Cas 1 · HAD · stupéfiants au domicile","title":"Ce que le livreur a posé sur la table","lede":"Lors d'une livraison chez un patient HAD, des patchs de fentanyl sont concernés. Le patient a récemment exprimé des idées suicidaires ; ses traitements sont donc sécurisés dans des coffres au domicile.","legend":{"a":"Livraison","b":"Équipe / IDEL","n":"Domicile"},"events":[{"t":"Semaine précédente","track":"b","tag":"Rappel","txt":"Un écart similaire a déjà eu lieu. Un rappel a été envoyé au responsable des livreurs et aux livreurs."},{"t":"Livraison suivante","track":"a","tag":"Livraison","txt":"Les patchs de fentanyl livrés ne sont pas rangés dans le coffre dédié aux stupéfiants."},{"t":"Après la livraison","track":"n","tag":"Domicile","txt":"Les patchs restent hors du coffre, alors que les traitements du patient sont sécurisés en raison du contexte connu."},{"t":"Passage IDEL","track":"b","tag":"Découverte","txt":"L'IDEL retrouve les patchs hors du coffre."},{"t":"Même passage","track":"b","tag":"Sécurisation","txt":"L'IDEL range les patchs dans le coffre et envoie un mail pour signaler à nouveau la situation au service concerné."}],"errors":[1],"barriers":[{"when":"Livraison suivante","txt":"Les patchs de fentanyl sont des stupéfiants : ils devaient être rangés dans le coffre au moment de la livraison. La procédure prévoit aussi que, si l'accès au coffre est impossible, le livreur doit le signaler à son chef d'équipe pour que l'information remonte à l'HAD."}],"extraNote":"Le fait que ce soit la deuxième occurrence est important : le problème n'est pas que l'IDEL n'a pas rangé les patchs assez vite. L'écart existe dès la livraison, avant son passage.","ruleTitle":"Ce qu'on en retient","rule":"Quand on retrouve un stupéfiant hors du coffre, le premier réflexe est simple : <b>on le sécurise immédiatement</b>. Ensuite, on fait remonter l'écart pour que le problème soit traité au niveau du circuit de livraison et qu'il ne se répète pas.","ctq":{"question":"Vous retrouvez les patchs de fentanyl hors du coffre. Que faites-vous ?","options":[{"txt":"Je les range immédiatement dans le coffre et je fais remonter l'écart au service concerné.","ok":true,"why":"C'est ce qui a été fait dans la situation réelle. On enlève d'abord le risque immédiat en sécurisant les patchs, puis on signale l'écart pour agir sur la livraison."},{"txt":"Je les laisse en place pour que le livreur puisse constater lui-même l'erreur lors de son prochain passage.","ok":false,"why":"Non. Avec un stupéfiant accessible, on ne laisse pas la situation en l'état pour conserver une preuve. On sécurise d'abord."},{"txt":"Je les mets dans le tiroir des traitements en attendant de savoir qui a accès au coffre.","ok":false,"why":"Ça déplace le médicament, mais ça ne le sécurise pas. Les stupéfiants doivent être mis dans le coffre."},{"txt":"Je les range dans le coffre et je considère l'incident réglé puisqu'il n'y a pas eu de conséquence.","ok":false,"why":"Le risque immédiat est réglé, mais pas la cause. La FAP précise que la situation s'était déjà produite malgré un rappel : sans remontée de l'écart, elle peut recommencer."}]},"source":{"kind":"Situation réelle - FAP ASDR","fap":"FAP-2026-361","procedure":"GQ-PROC-453 v2 - Livraison des médicaments et consommables aux patients HAD","note":"Le scénario reprend les éléments déclarés dans la FAP : patchs de fentanyl laissés hors du coffre, seconde occurrence malgré un rappel, puis sécurisation par l'IDEL."}},{"mins":4,"theme":"Cas 2 · HAD · PCA / programmation","title":"La feuille a changé. La pompe, non.","lede":"Une nouvelle cassette de midazolam doit être mise en place. L'IDEL dispose de la feuille de préparation la plus récente et a été formée récemment à l'utilisation de la PCA.","legend":{"a":"IDEL","b":"HAD / astreinte","n":"PCA"},"events":[{"t":"Avant le changement","track":"b","tag":"Document","txt":"La feuille de préparation PCA la plus récente est disponible."},{"t":"Changement de cassette","track":"a","tag":"Préparation","txt":"L'IDEL change la cassette de midazolam en s'appuyant sur cette nouvelle feuille de préparation."},{"t":"Programmation","track":"n","tag":"PCA","txt":"La concentration programmée sur la PCA n'est pas modifiée pour correspondre à la nouvelle préparation."},{"t":"Après constat","track":"b","tag":"Correction","txt":"Les paramètres sont repris avec l'IDEL par téléphone et la concentration est corrigée. Les conséquences possibles pour la patiente sont réexpliquées."},{"t":"Suite","track":"b","tag":"Rappel","txt":"L'importance de solliciter l'astreinte pour la vérification de la PCA au moindre doute est rappelée."}],"errors":[2],"barriers":[{"when":"Programmation","txt":"La préparation de la cassette a bien été prise en compte, mais pas la programmation de la pompe. Le double contrôle PCA doit aller jusqu'aux paramètres : mode, unité, concentration, débit de base, bolus, période réfractaire et volume résiduel."}],"extraNote":"Le changement de cassette n'est pas en lui-même l'erreur : l'IDEL s'est appuyée sur la feuille la plus récente. L'écart apparaît quand la nouvelle concentration n'est pas reportée dans les paramètres de la pompe.","ruleTitle":"Ce qu'on en retient","rule":"Avec une PCA, changer la cassette ne suffit pas. <b>La préparation et la programmation doivent raconter la même chose.</b> Quand l'une change, les paramètres de la pompe sont repris point par point dans le double contrôle. Et si une anomalie est détectée, le médecin d'astreinte est contacté immédiatement.","ctq":{"question":"Vous constatez que la cassette a été changée mais que la concentration de la PCA n'a pas été modifiée. Que faites-vous ?","options":[{"txt":"Je contacte immédiatement le médecin d'astreinte, puis je reprends avec l'IDEL la prescription, la feuille de préparation et les paramètres de la PCA point par point. La concentration est corrigée et la vérification est tracée dans le DPI.","ok":true,"why":"C'est le circuit prévu par la procédure. Quand une anomalie de PCA est repérée, le médecin d'astreinte doit être contacté immédiatement. Ensuite, on reprend le double contrôle complet avec l'IDEL et on trace chaque point vérifié dans le DPI."},{"txt":"Je modifie uniquement la concentration sur la pompe puisque la cassette a été préparée avec la bonne feuille.","ok":false,"why":"La concentration doit bien être corrigée, mais une fois un écart détecté, il est plus sûr de reprendre l'ensemble des paramètres prévus dans le double contrôle plutôt que de supposer que le reste est juste."},{"txt":"Je demande à l'IDEL de refaire une nouvelle cassette pour repartir de zéro.","ok":false,"why":"La FAP ne décrit pas une erreur de préparation de la cassette. Le problème identifié est la concentration programmée sur la PCA. Refaire la cassette ne répond pas à l'écart constaté."},{"txt":"Je note l'écart pour le lendemain car l'IDEL a été formée récemment à la PCA.","ok":false,"why":"La formation récente ne change rien au risque en cours. Une incohérence entre la cassette et la programmation doit être vérifiée et corrigée dès qu'elle est repérée."}]},"source":{"kind":"Situation réelle - FAP ASDR","fap":"FAP-2026-609","procedure":"GQ-FORM-055 v09 - Procédure de prescription médicale et circuit de préparation PCA","note":"Le scénario reprend la FAP : changement de cassette de midazolam avec la feuille la plus récente, sans modification de la concentration sur la PCA."}},{"mins":4,"theme":"Cas 3 · HAD · astreinte et relais","title":"L'appel qui n'a pas refermé la boucle","lede":"Une famille contacte l'ASDR pour une dyspnée. La situation va passer par plusieurs interlocuteurs, mais aucun relais ne sera réellement refermé pendant la nuit.","legend":{"a":"Famille","b":"ASDR / astreinte","n":"IDEL"},"events":[{"t":"Premier appel","track":"a","tag":"Dyspnée","txt":"La famille appelle l'astreinte de l'ASDR pour une dyspnée et il lui est demandé de contacter l'IDEL."},{"t":"Relais IDEL","track":"n","tag":"Appel","txt":"La famille appelle l'IDEL. Il n'y a pas de réponse."},{"t":"Après l'échec du relais","track":"b","tag":"Boucle ouverte","txt":"La famille ne rappelle pas l'astreinte et l'astreinte ne rappelle pas la famille. Personne ne confirme qu'un professionnel a pris le relais."},{"t":"Pendant la nuit","track":"b","tag":"Traçabilité","txt":"Rien n'est noté sur le tableau d'astreinte."},{"t":"Le matin","track":"n","tag":"Après passage","txt":"Aucun signe vital n'est tracé et l'IDEL ne rappelle pas l'astreinte après son passage."},{"t":"10 h 15","track":"a","tag":"Constat","txt":"À l'arrivée de l'équipe : fréquence respiratoire à 50/min et inconfort respiratoire."}],"errors":[0,2,3,4],"barriers":[{"when":"Premier appel","txt":"Pour une dyspnée, on est face à un besoin médical. Le circuit d'astreinte prévoit une orientation vers le médecin d'astreinte. Si une intervention infirmière est nécessaire, le relais vers l'IDEL puis, si elle est injoignable, vers l'administrateur de garde et l'IDE d'astreinte est organisé dans ce circuit."},{"when":"Après l'échec du relais","txt":"Une fois l'IDEL injoignable, on ne peut pas considérer que l'appel est terminé. La procédure d'astreinte prévoit une ligne de sécurité supplémentaire lorsque le cabinet libéral ne répond pas."},{"when":"Pendant la nuit","txt":"L'absence de trace laisse l'équipe suivante sans visibilité sur l'appel, la dyspnée et les tentatives de relais. La traçabilité fait partie du relais."},{"when":"Le matin","txt":"La FAP précise qu'après le passage de l'IDEL, il n'y avait ni signes vitaux tracés ni appel vers l'astreinte. Le retour d'information n'a donc toujours pas eu lieu."}],"extraNote":"La FAP ne dit pas qu'une personne a volontairement ignoré l'appel. Le problème est surtout qu'après plusieurs appels, personne n'a eu la confirmation que la situation était effectivement prise en charge.","ruleTitle":"Ce qu'on en retient","rule":"Pour une dyspnée, l'appel doit d'abord entrer dans le circuit médical d'astreinte. Ensuite, si un relais infirmier est nécessaire, <b>la boucle continue jusqu'à ce qu'un professionnel ait réellement pris la situation en charge</b>. Et ce passage de relais doit être tracé pour l'équipe suivante.","ctq":{"question":"Vous arrivez et constatez une fréquence respiratoire à 50/min avec un inconfort respiratoire. Que faites-vous ?","options":[{"txt":"J'évalue immédiatement la situation au domicile et j'appelle le médecin coordonnateur. Si la situation relève de l'urgence, le lien avec le Centre 15 est fait ; sinon j'applique la conduite thérapeutique prescrite. Puis je trace l'événement et le relais.","ok":true,"why":"Le patient passe d'abord. La procédure prévoit l'évaluation médicale et, si les paramètres font craindre une urgence, le lien avec le Centre 15. La FAP décrit ensuite l'appel au médecin et l'administration des thérapeutiques selon la prescription. La traçabilité est remise à jour une fois la prise en charge engagée."},{"txt":"Je rappelle d'abord l'IDEL pour comprendre pourquoi elle n'a pas répondu pendant la nuit.","ok":false,"why":"Il faudra comprendre ce qui s'est passé, mais pas avant de s'occuper du patient qui est en difficulté respiratoire."},{"txt":"Je complète le tableau d'astreinte avec les appels de la nuit avant de contacter le médecin.","ok":false,"why":"La traçabilité est nécessaire, mais elle passe après l'évaluation d'un patient qui présente une FR à 50/min et un inconfort respiratoire."},{"txt":"J'oriente la famille vers le cabinet IDEL puisque c'est lui qui devait intervenir.","ok":false,"why":"À ce stade, ce relais a déjà échoué. On ne renvoie pas simplement la famille dans la même boucle : il faut reprendre la situation et organiser la prise en charge."}]},"source":{"kind":"Situation réelle - FAP ASDR","fap":"FAP-2026-248","procedure":"GQ-PROC-535-v1 - Modalités de recours Astreintes infirmières en HAD","note":"La chronologie reprend les éléments déclarés : appel pour dyspnée, IDEL injoignable, absence de rappel de part et d'autre, absence de trace, puis FR à 50/min avec inconfort respiratoire."}},{"mins":4,"theme":"Cas 4 · HAD · chaîne du froid","title":"Le traitement qui devait rester au froid","lede":"Une patiente reçoit une chimiothérapie orale par HYCAMTIN. Le sachet porte une étiquette indiquant une conservation entre +2 °C et +8 °C et la mention « médicament à risque ».","legend":{"a":"Traitement","b":"Professionnels","n":"Domicile"},"events":[{"t":"02/02","track":"b","tag":"Première prise","txt":"Lors de la première prise, les boîtes d'HYCAMTIN sont dans le réfrigérateur."},{"t":"03/02 · 1 h avant la prise","track":"n","tag":"Conservation","txt":"Depuis 1 h, les boîtes ne sont plus conservées au réfrigérateur et se retrouvent dans le tiroir des traitements."},{"t":"03/02","track":"a","tag":"Administration","txt":"La chimiothérapie est administrée alors que le traitement n'est plus conservé au froid."},{"t":"04/02","track":"a","tag":"Administration","txt":"Une nouvelle administration est réalisée dans les mêmes conditions de conservation."},{"t":"05/02","track":"b","tag":"VAD","txt":"Lors de l'inventaire des traitements, les boîtes d'HYCAMTIN sont retrouvées dans le tiroir."},{"t":"05/02","track":"b","tag":"Conduite tenue","txt":"Le médecin coordonnateur et le pharmacien sont appelés. La patiente est informée, le traitement est isolé pour retour PUI et une relivraison est organisée le jour même."}],"errors":[1,2,3],"barriers":[{"when":"03/02 · 1 h avant la prise","txt":"La chaîne du froid est rompue : depuis 1 h, ce médicament n'est plus conservé entre +2 °C et +8 °C et se trouve dans le tiroir des traitements."},{"when":"03/02","txt":"Le traitement est administré alors qu'il n'est plus conservé dans les conditions prévues."},{"when":"04/02","txt":"La même situation se reproduit le lendemain : la non-conformité de conservation n'a pas été repérée avant l'administration."}],"extraNote":"Le point à repérer ici est simple : le médicament est hors du réfrigérateur alors qu'il doit rester conservé entre +2 °C et +8 °C.","ruleTitle":"Ce qu'on en retient","rule":"Pour un médicament thermosensible, le rangement fait partie du traitement. <b>Une boîte étiquetée +2/+8 °C doit rester au réfrigérateur.</b> Si on découvre que les conditions n'ont pas été respectées, on ne décide pas seul que le produit reste utilisable : on demande la conduite à tenir à la PUI / au pharmacien.","ctq":{"question":"Lors de la VAD, vous retrouvez l'HYCAMTIN dans le tiroir des traitements. Que faites-vous ?","options":[{"txt":"J'appelle le médecin coordonnateur et le pharmacien, j'isole le traitement concerné pour retour PUI et j'organise la suite selon leur conduite à tenir.","ok":true,"why":"C'est ce qui a été fait dans la FAP. Le point important est de ne pas décider soi-même que le produit peut continuer à être utilisé après une conservation non conforme."},{"txt":"Je remets immédiatement les boîtes au réfrigérateur et je poursuis le traitement puisqu'elles sont encore dans leur emballage.","ok":false,"why":"Remettre le produit au froid ne permet pas de savoir s'il est encore utilisable. La durée et les conditions de l'écart doivent être prises en compte par le pharmacien."},{"txt":"Je jette les boîtes et je demande une nouvelle livraison.","ok":false,"why":"La décision d'utilisation ou de non-utilisation ne se prend pas seul au domicile. Le traitement doit être isolé et la conduite à tenir demandée."},{"txt":"Je poursuis jusqu'à la prochaine visite puisque la patiente a déjà reçu deux prises sans problème apparent.","ok":false,"why":"L'absence d'effet visible ne prouve pas que le médicament a conservé sa qualité. Le problème doit être traité dès sa découverte."}]},"source":{"kind":"Situation réelle - FAP ASDR","fap":"FAP-2026-107","procedure":"GQ-PROC-250 v6 - Médicaments thermosensibles et chaîne du froid","note":""}},{"mins":4,"theme":"Cas 5 · HAD · cas piège / retour d'hospitalisation","title":"Tout est prêt… ou presque","lede":"Un patient déjà connu de l'HAD est revenu au domicile sans que le retour ait pu être anticipé. L'IDEL appelle l'astreinte pour prévenir du retour. À première vue, chaque étape paraît logique.","legend":{"a":"IDEL","b":"Astreinte HAD","n":"Dossier / administratif"},"trap":true,"events":[{"t":"Retour au domicile","track":"a","tag":"Appel IDEL","txt":"L'IDEL informe l'IDEC d'astreinte que le patient est déjà rentré au domicile."},{"t":"Bilan IDEC","track":"b","tag":"Évaluation","txt":"L'IDEC recueille les constantes et l'état clinique, vérifie la sécurité au domicile, identifie les traitements à relivrer et récupère les documents de sortie."},{"t":"Dossier","track":"n","tag":"Mise en suivi","txt":"Le dossier est remis en préadmission puis en suivi afin que les prescriptions puissent être mises à jour."},{"t":"Après la mise en suivi","track":"b","tag":"Validation médicale","txt":"Le médecin d'astreinte valide ensuite le retour en HAD au regard de l'état clinique et des conditions au domicile."},{"t":"Suite","track":"b","tag":"Coordination","txt":"Les prescriptions sont mises à jour, le plan de soins et la lettre de mission sont renouvelés et les besoins de relivraison sont organisés."}],"errors":[2],"barriers":[{"when":"Dossier","txt":"C'est le piège. Pour un patient déjà rentré au domicile, la procédure prévoit d'abord le bilan de l'IDEC, puis la <b>validation HAD par le médecin d'astreinte</b>. Ce n'est qu'ensuite que l'administrateur remet le dossier en préadmission et en suivi."}],"extraNote":"Tout le reste paraît cohérent, ce qui rend le cas volontairement trompeur. Le problème n'est pas un mauvais soin : c'est l'ordre d'une barrière organisationnelle.","ruleTitle":"Ce qu'on en retient","rule":"Quand le patient est déjà au domicile, on peut être tenté d'ouvrir le dossier au plus vite pour avancer. Mais la procédure place <b>la validation médicale avant la mise en suivi</b>. L'ordre sert justement à éviter de formaliser un retour avant que sa compatibilité avec l'HAD soit confirmée.","ctq":{"question":"Quel ordre est conforme à la procédure ASDR dans cette situation ?","options":[{"txt":"Bilan IDEC et sécurité du domicile → information du médecin d'astreinte → validation HAD → préadmission / mise en suivi → mise à jour du dossier et coordination.","ok":true,"why":"Oui. C'est l'ordre prévu pour un patient déjà rentré au domicile : l'IDEC rassemble les éléments, le médecin valide le retour, puis le dossier est remis en suivi."},{"txt":"Bilan IDEC → préadmission / mise en suivi → validation médicale → mise à jour du dossier.","ok":false,"why":"C'est précisément le piège du cas. Cette organisation paraît pratique pour gagner du temps, mais la mise en suivi arrive avant la validation du médecin d'astreinte."},{"txt":"Mise en suivi immédiate → récupération des documents → validation médicale en fin de processus.","ok":false,"why":"La procédure ne prévoit pas de régulariser la validation après coup. La compatibilité du retour doit être validée avant la mise en suivi."},{"txt":"L'IDEL décide du retour puisqu'elle est déjà au domicile ; l'HAD met ensuite le dossier à jour.","ok":false,"why":"L'IDEL alerte et participe au recueil d'informations, mais la validation du retour en HAD relève du médecin d'astreinte dans ce circuit."}]},"source":{"kind":"Cas pédagogique fictif - piège","fap":"Aucune FAP : cas construit à partir de la procédure","procedure":"GQ-PROC-154 v4 - Retour d'un patient en HAD pendant une phase d'astreinte : mouvements Hôpital Manager","note":"Le cas reprend la situation n°3 de la procédure : patient déjà au domicile."}}];
+
+var $=function(id){return document.getElementById(id)};
+
+var host=$("cases"), anchor=host.nextElementSibling;
+CASES.forEach(function(C,ci){
+  var sec=document.createElement("section");
+  sec.className="step"; sec.setAttribute("data-mins",C.mins);
+  var lis="";
+  C.events.forEach(function(ev,i){
+    lis+='<li><button class="ev" type="button" data-c="'+ci+'" data-i="'+i+'" data-track="'+ev.track+'">'+
+         '<span class="box"></span><span class="t">'+ev.t+'</span><span class="track"></span>'+
+         '<span class="txt"><span class="tag">'+ev.tag+'</span>'+ev.txt+
+         '<span class="mark"></span></span></button></li>';
+  });
+  sec.innerHTML=
+    '<p class="eyebrow">Séquence '+(ci+2)+' sur '+(CASES.length+2)+' · '+C.mins+' minutes · '+C.theme+'</p>'+
+    '<h2>'+C.title+'</h2>'+
+    '<p class="lede">'+C.lede+'</p>'+
+    '<div class="panel">'+
+      '<div class="caseband">'+
+        '<span class="who a"><i></i>'+C.legend.a+'</span>'+
+        '<span class="who b"><i></i>'+C.legend.b+'</span>'+
+        '<span class="who n"><i></i>'+C.legend.n+'</span>'+
+      '</div>'+
+      '<ul class="tl" id="tl'+ci+'">'+lis+'</ul>'+
+      '<div class="legend-fix">'+
+        '<span><i class="ok"></i>Trouvé : erreur correctement repérée</span>'+
+        '<span><i class="ko"></i>Non coché : erreur que vous avez manquée</span>'+
+        '<span><i class="wr"></i>Coché à tort : ce moment n\'est pas une erreur</span>'+
+      '</div>'+
+      '<p class="note" style="margin-top:18px">Cochez <b>tous</b> les moments où vous repérez un écart par rapport à la pratique attendue. Plusieurs réponses sont possibles. Si tout vous semble correct, choisissez « Tout est conforme, aucune erreur ».</p>'+
+      '<div class="actionbar" id="ab'+ci+'">'+
+        '<button type="button" class="btn" data-check="'+ci+'" disabled>Valider mes réponses</button>'+
+        '<button type="button" class="none-btn" data-none="'+ci+'">Tout est conforme, aucune erreur</button>'+
+        '<span class="counter" id="cnt'+ci+'">Aucun moment sélectionné</span>'+
+      '</div>'+
+      '<div class="verdict" id="v'+ci+'"></div>'+
+      '<div class="actionbar hidden" id="ab2'+ci+'">'+
+        '<button type="button" class="btn" data-open="'+ci+'">Choisir la conduite à tenir</button>'+
+        '<span class="counter">Une seule réponse conforme</span>'+
+      '</div>'+
+      '<div class="verdict" id="w'+ci+'"></div>'+
+    '</div>';
+  host.parentNode.insertBefore(sec, anchor);
+});
+
+var steps=[].slice.call(document.querySelectorAll(".step"));
+var idx=0, started=false, t0=0, tick=null;
+var picks=CASES.map(function(){return []});
+var done=CASES.map(function(){return false});
+var results=CASES.map(function(){return null});
+var noneChoice=CASES.map(function(){return false});
+var ctqScore={ok:0,total:0};
+var ctqResults=CASES.map(function(){return null});
+
+var totalMin=steps.reduce(function(s,el){return s+parseInt(el.getAttribute("data-mins"),10)},0);
+$("total").textContent="/ "+totalMin+":00";
+
+var spine=$("spine");
+steps.forEach(function(){spine.appendChild(document.createElement("i"))});
+var bars=[].slice.call(spine.children);
+
+function pad(n){return (n<10?"0":"")+n}
+function fmt(s){return pad(Math.floor(s/60))+":"+pad(s%60)}
+function runClock(){
+  var s=Math.floor((Date.now()-t0)/1000), c=$("clock");
+  c.firstElementChild.textContent=fmt(s);
+  c.className = (s>totalMin*60) ? "clock over" : "clock";
+}
+function startClock(){
+  if(started) return;
+  started=true; t0=Date.now(); runClock(); tick=setInterval(runClock,1000);
+}
+$("main").addEventListener("click",startClock,false);
+
+function show(i){
+  idx=Math.max(0,Math.min(steps.length-1,i));
+  steps.forEach(function(s,n){ if(n===idx){s.classList.add("on")}else{s.classList.remove("on")} });
+  bars.forEach(function(b,n){b.className = n<idx?"done":(n===idx?"now":"")});
+  $("prev").disabled = idx===0;
+  $("next").disabled = idx===steps.length-1;
+  $("next").textContent = idx===steps.length-1 ? "Terminé" : "Suivant";
+  var m=steps[idx].getAttribute("data-mins");
+  $("budget").textContent="Séquence "+(idx+1)+" / "+steps.length+" · "+m+" min";
+  if(idx===steps.length-1) updateScore();
+  window.scrollTo({top:0,behavior:"instant"});
+}
+$("next").addEventListener("click",function(){startClock();show(idx+1)});
+$("prev").addEventListener("click",function(){show(idx-1)});
+document.addEventListener("keydown",function(e){
+  var tn=(e.target.tagName||"").toUpperCase();
+  if(tn==="INPUT"||tn==="TEXTAREA") return;
+  if($("mask").classList.contains("open")){ if(e.key==="Escape") closeModal(); return; }
+  if(e.key==="ArrowRight"){startClock();show(idx+1)}
+  if(e.key==="ArrowLeft"){show(idx-1)}
+});
+
+[].forEach.call(document.querySelectorAll(".quizblock .q"),function(q){
+  var ans=parseInt(q.getAttribute("data-answer"),10);
+  var opts=[].slice.call(q.querySelectorAll(".opt"));
+  opts.forEach(function(btn,i){
+    btn.addEventListener("click",function(){
+      opts.forEach(function(b,j){
+        b.disabled=true;
+        b.classList.add(j===ans?"right":(j===i?"wrong":"picked"));
+        if(j!==ans&&j!==i) b.classList.remove("picked");
+      });
+      q.querySelector(".fb").classList.add("show");
+    });
+  });
+});
+
+function onEv(b){
+  var ci=parseInt(b.getAttribute("data-c"),10), i=parseInt(b.getAttribute("data-i"),10);
+  if(done[ci]) return;
+  if(noneChoice[ci]){
+    noneChoice[ci]=false;
+    var nb=document.querySelector('[data-none="'+ci+'"]');
+    if(nb) nb.classList.remove("sel");
+  }
+  var arr=picks[ci], p=arr.indexOf(i);
+  if(p>-1){arr.splice(p,1); b.classList.remove("sel")}
+  else {arr.push(i); b.classList.add("sel")}
+  var n=arr.length;
+  $("cnt"+ci).textContent = n===0 ? "Aucun moment sélectionné"
+    : (n===1 ? "1 moment sélectionné" : n+" moments sélectionnés");
+  document.querySelector('[data-check="'+ci+'"]').disabled = n===0;
+}
+
+function onNone(b){
+  var ci=parseInt(b.getAttribute("data-none"),10);
+  if(done[ci]) return;
+  noneChoice[ci]=!noneChoice[ci];
+  b.classList.toggle("sel",noneChoice[ci]);
+  if(noneChoice[ci]){
+    picks[ci]=[];
+    [].forEach.call($("tl"+ci).querySelectorAll(".ev"),function(ev){ev.classList.remove("sel")});
+    $("cnt"+ci).textContent="Vous estimez que la chronologie est conforme";
+  }else{
+    $("cnt"+ci).textContent="Aucun moment sélectionné";
+  }
+  document.querySelector('[data-check="'+ci+'"]').disabled = !noneChoice[ci] && picks[ci].length===0;
+}
+[].forEach.call(document.querySelectorAll("[data-none]"),function(b){
+  b.addEventListener("click",function(){onNone(b)});
+});
+
+var current=null, currentCtq=null, chosen=null;
+
+function openModal(key,ctq,kicker){
+  current=key; currentCtq=ctq; chosen=null;
+  $("m-kicker").textContent=kicker;
+  $("m-title").textContent=ctq.question;
+  $("m-warn").classList.remove("show");
+  var list=$("m-list");
+  list.innerHTML="";
+  ctq.options.forEach(function(o,i){
+    var b=document.createElement("button");
+    b.type="button"; b.className="ctq-opt"; b.setAttribute("data-pick",i);
+    b.innerHTML='<span class="dot"></span><span>'+o.txt+'</span>';
+    b.addEventListener("click",function(){
+      chosen=i;
+      [].forEach.call(list.children,function(c,j){ if(j===i){c.classList.add("sel")}else{c.classList.remove("sel")} });
+      $("m-warn").classList.remove("show");
+    });
+    list.appendChild(b);
+  });
+  $("mask").classList.add("open");
+  document.body.classList.add("locked");
+}
+function closeModal(){
+  $("mask").classList.remove("open");
+  document.body.classList.remove("locked");
+}
+$("m-cancel").addEventListener("click",closeModal);
+$("mask").addEventListener("click",function(e){ if(e.target===$("mask")) closeModal(); });
+
+$("m-go").addEventListener("click",function(){
+  if(chosen===null){ $("m-warn").classList.add("show"); return; }
+  var k=current, pick=chosen;
+  closeModal();
+  if(k==="s1") revealS1(pick); else reveal(k,pick);
+});
+
+function onOpen(b){
+  if(b.disabled) return;
+  var ci=parseInt(b.getAttribute("data-open"),10);
+  openModal(ci,CASES[ci].ctq,"Conduite à tenir · cas "+(ci+1));
+}
+function onCheck(b){
+  if(b.disabled) return;
+  checkTimeline(parseInt(b.getAttribute("data-check"),10));
+}
+[].forEach.call(document.querySelectorAll("[data-check]"),function(b){
+  b.addEventListener("click",function(){onCheck(b)});
+});
+[].forEach.call(document.querySelectorAll(".ev"),function(b){
+  b.addEventListener("click",function(){onEv(b)});
+});
+[].forEach.call(document.querySelectorAll("[data-open]"),function(b){
+  b.addEventListener("click",function(){onOpen(b)});
+});
+if($("s1-open")){
+  $("s1-open").addEventListener("click",function(){
+    openModal("s1",CTQ_S1,"Conduite à tenir · cas d'école");
+  });
+}
+
+function ctqBlock(ctq,pick){
+  var good=-1;
+  ctq.options.forEach(function(o,i){ if(o.ok) good=i; });
+  var isOk = pick===good;
+  ctqScore.total++; if(isOk) ctqScore.ok++;
+  var h='<div class="ctq-res"><span class="head">Conduite à tenir : '+
+        (isOk?"réponse conforme":"réponse non conforme")+'</span>';
+  h+='<div class="row '+(isOk?"good":"bad")+'"><span class="who2">Votre choix</span>'+
+     '<p class="prop">'+ctq.options[pick].txt+'</p>'+
+     '<p class="why">'+ctq.options[pick].why+'</p></div>';
+  if(!isOk){
+    h+='<div class="row good"><span class="who2">La réponse conforme</span>'+
+       '<p class="prop">'+ctq.options[good].txt+'</p>'+
+       '<p class="why">'+ctq.options[good].why+'</p></div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+function revealS1(pick){
+  $("s1-open").disabled=true;
+  var box=$("s1-verdict");
+  box.innerHTML=
+    ctqBlock(CTQ_S1,pick)+
+    '<div class="rule-out"><h3>'+S1_RULE.title+'</h3><p>'+S1_RULE.text+'</p></div>';
+  box.classList.add("show");
+  try{ box.scrollIntoView({behavior:"smooth",block:"nearest"}) }catch(err){ try{ box.scrollIntoView(true) }catch(e2){} }
+}
+
+function checkTimeline(ci){
+  var C=CASES[ci], ul=$("tl"+ci), box=$("v"+ci);
+  if(done[ci]) return;
+  done[ci]=true;
+  ul.classList.add("revealed");
+  document.querySelector('[data-check="'+ci+'"]').disabled=true;
+  var noneBtn=document.querySelector('[data-none="'+ci+'"]');
+  if(noneBtn) noneBtn.disabled=true;
+
+  var first=Math.min.apply(null,C.errors);
+  var chosen=picks[ci];
+  [].forEach.call(ul.querySelectorAll(".ev"),function(b,i){
+    var isErr = C.errors.indexOf(i)>-1;
+    var wasPicked = chosen.indexOf(i)>-1;
+    var m = b.querySelector(".mark");
+    if(isErr){
+      b.classList.add("err");
+      if(wasPicked){ b.classList.add("got"); m.textContent="Trouvé"; }
+      else { b.classList.add("missed"); m.textContent="Non coché"; }
+    } else if(wasPicked){
+      b.classList.add("wrong"); m.textContent="Coché à tort";
+    }
+    if(i>=first) b.classList.add("tainted");
+  });
+
+  var hit=0, extra=0;
+  picks[ci].forEach(function(i){ if(C.errors.indexOf(i)>-1) hit++; else extra++; });
+  results[ci]={hit:hit,total:C.errors.length,extra:extra};
+
+  var stamp,msg;
+  if(C.trap && noneChoice[ci]){
+    stamp='<span class="stamp miss">Piège !</span>';
+    msg="La chronologie paraît propre, mais une étape est dans le mauvais ordre. Regardez surtout ce qui se passe avant la mise en suivi.";
+  } else if(C.trap && hit===C.errors.length && extra===0){
+    stamp='<span class="stamp hit">Piège déjoué</span>';
+    msg="Bien vu. Les actions sont toutes plausibles, mais la mise en suivi arrive trop tôt dans la chronologie.";
+  } else if(hit===C.errors.length && extra===0){
+    stamp='<span class="stamp hit">Complet</span>';
+    msg="Vous avez identifié les "+C.errors.length+" moments d'erreur, sans en ajouter.";
+  } else if(hit>0){
+    stamp='<span class="stamp near">Partiel</span>';
+    msg=hit+" moment"+(hit>1?"s":"")+" d'erreur sur "+C.errors.length+" identifié"+(hit>1?"s":"")+
+        (extra? ", et "+extra+" moment"+(extra>1?"s":"")+" retenu"+(extra>1?"s":"")+" à tort." : ".");
+  } else {
+    stamp='<span class="stamp miss">À revoir</span>';
+    msg="Aucun des moments d'erreur n'a été retenu. Les moments cochés sont des conséquences, pas des causes.";
+  }
+
+  var bl="";
+  C.barriers.forEach(function(x){
+    bl+='<li><span class="when">'+x.when+'</span><span>'+x.txt+'</span></li>';
+  });
+
+  box.innerHTML=
+    stamp+'<p style="font-size:1.05rem">'+msg+'</p>'+
+    '<h3 style="margin-top:20px">Les moments d\'erreur</h3>'+
+    '<ul class="barriers">'+bl+'</ul>'+
+    (C.extraNote?'<p class="note" style="margin-top:20px">'+C.extraNote+'</p>':'');
+  box.classList.add("show");
+  $("ab2"+ci).classList.remove("hidden");
+  try{ box.scrollIntoView({behavior:"smooth",block:"nearest"}) }catch(err){ try{ box.scrollIntoView(true) }catch(e2){} }
+}
+
+/* étape 2 : conduite à tenir + ce qu'on retient */
+
+function sourceBlock(C){
+  if(!C.source) return "";
+  return '<details class="source-details">'+
+    '<summary>D’où vient ce cas ?</summary>'+
+    '<div class="sourcebox">'+
+      '<span class="src-kicker">Source et procédure</span>'+
+      '<p><b>'+C.source.kind+'</b></p>'+
+      '<p><b>Source :</b> '+C.source.fap+'</p>'+
+      '<p><b>Procédure associée :</b> '+C.source.procedure+'</p>'+
+      (C.source.note?'<p>'+C.source.note+'</p>':'')+
+    '</div>'+
+  '</details>';
+}
+
+function reveal(ci,pick){
+  var C=CASES[ci], box=$("w"+ci);
+  if(box.classList.contains("show")) return;
+  var good=-1;
+  C.ctq.options.forEach(function(o,i){if(o.ok) good=i;});
+  ctqResults[ci]=(pick===good);
+  $("ab2"+ci).classList.add("hidden");
+  box.innerHTML =
+    '<div class="result-grid">'+
+      '<div class="result-pane">'+ctqBlock(C.ctq,pick)+'</div>'+
+      '<div class="result-pane lesson-pane">'+
+        '<span class="pane-kicker">À retenir</span>'+
+        '<h3>'+C.ruleTitle+'</h3>'+
+        '<p>'+C.rule+'</p>'+
+      '</div>'+
+    '</div>'+
+    sourceBlock(C);
+  box.classList.add("show");
+  try{ box.scrollIntoView({behavior:"smooth",block:"nearest"}) }catch(err){ try{ box.scrollIntoView(true) }catch(e2){} }
+}
+
+function updateScore(){
+  var treated=0,h=0,tot=0,x=0,full=0;
+  var rows="";
+  CASES.forEach(function(C,ci){
+    var r=results[ci];
+    var chrono=null;
+    if(r){
+      treated++; h+=r.hit; tot+=r.total; x+=r.extra;
+      chrono=(r.hit===r.total && r.extra===0 && !noneChoice[ci]);
+    }
+    var conduct=ctqResults[ci];
+    if(chrono===true && conduct===true) full++;
+    var cTxt=chrono===null?"Chronologie : non faite":(chrono?"Chronologie : réussie":"Chronologie : à revoir");
+    var cCls=chrono===null?"mini":(chrono?"mini good":"mini bad");
+    var aTxt=conduct===null?"Conduite : non faite":(conduct?"Conduite : conforme":"Conduite : à revoir");
+    var aCls=conduct===null?"mini":(conduct?"mini good":"mini bad");
+    rows+='<div class="final-row">'+
+      '<span class="case-name">Cas '+(ci+1)+' · '+C.title+'</span>'+ 
+      '<span class="'+cCls+'">'+cTxt+'</span>'+ 
+      '<span class="'+aCls+'">'+aTxt+'</span>'+ 
+    '</div>';
+  });
+  $("finalresults").innerHTML=rows;
+  $("finalscore").textContent="Cas totalement réussis : "+full+" / "+CASES.length;
+  var fun="";
+  if(full===5) fun="🎯 Sans-faute : les cinq barrières sont bien repérées.";
+  else if(full===4) fun="👏 Presque parfait : un seul cas mérite un petit deuxième passage.";
+  else if(full===3) fun="👍 Bon réflexe : trois cas sont complètement maîtrisés.";
+  else if(full>0) fun="🔎 Il reste quelques pièges à déjouer — c'est justement le but de l'atelier.";
+  else fun="🧩 Aucun cas complet pour l'instant : reprenez-les tranquillement, les pièges sont faits pour faire discuter.";
+  $("finalfun").textContent=fun;
+  var s = treated===0 ? "" :
+    "Cas traités : "+treated+" / "+CASES.length+"  ·  moments d'erreur identifiés : "+h+" / "+tot+
+    (x? "  ·  retenus à tort : "+x : "");
+  if(ctqScore.total) s += (s?"  ·  ":"")+"conduites à tenir conformes : "+ctqScore.ok+" / "+ctqScore.total;
+  $("scoreline").textContent=s;
+}
+
+$("restart").addEventListener("click",function(){location.reload()});
+
+show(0);
+})();
+</script>
+
+</body>
+</html>
