@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Identitovigilance · Atelier flash ASDR V2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --paper:#D9E0DE; --card:#F7F9F8; --ink:#131E23; --ink-soft:#4C5B60;
+  --rule:#B9C4C1; --id-a:#0B6E8F; --id-b:#B5761B;
+  --alert:#A8322A; --ok:#2F6B4F; --warn:#B57314;
+  --hatch:repeating-linear-gradient(135deg,var(--id-a) 0 5px,var(--id-b) 5px 10px);
+  --display:"Space Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+*{box-sizing:border-box}
+.jswarn{background:#A8322A;color:#fff;padding:16px 22px;font-size:1rem;line-height:1.5}
+.jswarn b{display:block;font-weight:700;margin-bottom:4px}
+button{touch-action:manipulation;-webkit-tap-highlight-color:rgba(11,110,143,.15);-webkit-appearance:none;appearance:none}
+@media (hover:none){
+  .btn:hover:not([disabled]){background:var(--ink);transform:none}
+  .btn.ghost:hover:not([disabled]){background:transparent}
+  .opt:hover:not([disabled]){border-color:var(--rule)}
+  .ev:hover:not([disabled]){background:transparent}
+  .ctq-opt:hover{border-color:var(--rule)}
+  .btn:active:not([disabled]){transform:scale(.98);opacity:.85}
+  .opt:active,.ctq-opt:active,.ev:active{background:rgba(11,110,143,.10)}
+}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+body.locked{overflow:hidden}
+:focus-visible{outline:3px solid var(--id-a);outline-offset:3px}
+
+.topbar{position:sticky;top:0;z-index:50;background:var(--paper);border-bottom:1px solid var(--rule)}
+.topbar-in{max-width:1080px;margin:0 auto;padding:10px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brandmark{font-family:var(--display);font-weight:700;font-size:.74rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-soft);margin-right:auto}
+.clock{font-family:var(--mono);font-size:.9rem;font-weight:500;display:flex;align-items:baseline;gap:7px}
+.clock b{font-weight:600;font-size:1.05rem}
+.clock span{color:var(--ink-soft);font-size:.76rem}
+.clock.over b{color:var(--alert)}
+.phasebudget{font-family:var(--mono);font-size:.76rem;color:var(--ink-soft);
+  border-left:1px solid var(--rule);padding-left:16px}
+.spine{display:flex;gap:3px;max-width:1080px;margin:0 auto;padding:0 22px 9px}
+.spine i{flex:1;height:4px;background:var(--rule);border-radius:2px;transition:background .3s ease}
+.spine i.done{background:var(--ink-soft)}
+.spine i.now{background:var(--id-a)}
+
+main{max-width:1080px;margin:0 auto;padding:34px 22px 120px}
+.step{display:none;animation:rise .34s cubic-bezier(.2,.7,.3,1)}
+.step.on{display:block}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+.eyebrow{font-family:var(--display);font-size:.7rem;font-weight:700;letter-spacing:.19em;
+  text-transform:uppercase;color:var(--ink-soft);margin:0 0 12px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(2rem,5vw,3.2rem);line-height:1.02;
+  letter-spacing:-.025em;margin:0 0 18px}
+h2{font-family:var(--display);font-weight:700;font-size:clamp(1.45rem,3.3vw,2.1rem);line-height:1.1;
+  letter-spacing:-.02em;margin:0 0 14px}
+h3{font-family:var(--display);font-weight:600;font-size:1.02rem;letter-spacing:.01em;margin:0 0 8px}
+p{margin:0 0 15px;max-width:66ch}
+.lede{font-size:clamp(1.03rem,2vw,1.2rem);color:var(--ink-soft)}
+.panel{background:var(--card);border:1px solid var(--rule);border-radius:3px;padding:26px;margin:0 0 20px}
+
+.hero{position:relative;height:clamp(170px,26vw,230px);margin:0 0 30px;display:grid;place-items:center;overflow:hidden}
+.plate{position:absolute;background:var(--card);border:1px solid var(--rule);border-left:7px solid;
+  padding:14px 21px;min-width:min(320px,78vw);box-shadow:0 2px 0 rgba(19,30,35,.07)}
+.plate .fld{font-family:var(--mono);font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-soft)}
+.plate .nm{font-family:var(--display);font-weight:700;font-size:clamp(1rem,2.5vw,1.42rem);letter-spacing:-.01em}
+.plate .dob{font-family:var(--mono);font-size:.8rem;color:var(--ink-soft)}
+.plate.a{border-left-color:var(--id-a);animation:slideA 6s cubic-bezier(.5,0,.2,1) infinite}
+.plate.b{border-left-color:var(--id-b);animation:slideB 6s cubic-bezier(.5,0,.2,1) infinite}
+@keyframes slideA{0%,12%{transform:translate(-32%,-46%);opacity:1}46%,72%{transform:translate(0,-4%);opacity:.55}95%,100%{transform:translate(-32%,-46%);opacity:1}}
+@keyframes slideB{0%,12%{transform:translate(32%,46%);opacity:1}46%,72%{transform:translate(0,4%);opacity:.55}95%,100%{transform:translate(32%,46%);opacity:1}}
+.hero .merge{position:absolute;height:100%;width:min(320px,78vw);background:var(--hatch);opacity:0;
+  animation:mergeIn 6s cubic-bezier(.5,0,.2,1) infinite;mix-blend-mode:multiply}
+@keyframes mergeIn{0%,30%{opacity:0}52%,70%{opacity:.16}88%,100%{opacity:0}}
+
+button{font:inherit;cursor:pointer}
+.btn{font-family:var(--display);font-weight:600;font-size:.95rem;background:var(--ink);color:var(--card);
+  border:1px solid var(--ink);padding:13px 26px;border-radius:2px;transition:transform .12s ease,background .18s ease;
+  cursor:pointer;min-height:44px}
+.btn:hover:not([disabled]){background:#233238;transform:translateY(-1px)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover:not([disabled]){background:rgba(19,30,35,.06)}
+.btn[disabled]{opacity:.35;cursor:not-allowed;transform:none}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--paper);border-top:1px solid var(--rule)}
+.nav-in{max-width:1080px;margin:0 auto;padding:13px 22px;display:flex;gap:12px;align-items:center}
+.nav .hint{margin-left:auto;font-family:var(--mono);font-size:.74rem;color:var(--ink-soft);text-align:right}
+
+.q{border-top:1px solid var(--rule);padding:22px 0 4px}
+.q:first-of-type{border-top:0;padding-top:0}
+.q .stem{font-size:1.05rem;margin-bottom:14px;max-width:64ch}
+.q .ref{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--id-a);display:block;margin-bottom:6px}
+.opts{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.opt{font-family:var(--display);font-weight:600;font-size:.9rem;background:var(--card);color:var(--ink);
+  border:1px solid var(--rule);padding:11px 20px;border-radius:2px;transition:border-color .15s,background .15s;
+  cursor:pointer;min-height:44px}
+.opt:hover:not([disabled]){border-color:var(--ink)}
+.opt.picked{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.opt.right{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.wrong{background:var(--alert);border-color:var(--alert);color:#fff}
+.fb{display:none;border-left:3px solid var(--ink-soft);padding:2px 0 2px 16px;color:var(--ink-soft);
+  font-size:.96rem;max-width:64ch}
+.fb.show{display:block;animation:rise .25s ease}
+.fb b{color:var(--ink)}
+
+.defs{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.defs>div{padding:0 22px}
+.defs>div:first-child{border-right:1px solid var(--rule);padding-left:0}
+.defs>div:last-child{padding-right:0}
+.defs h3{color:var(--id-a)}
+.defs p{font-size:.97rem;margin-bottom:10px}
+.defs .tagline{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:1px;background:var(--rule);
+  border:1px solid var(--rule)}
+.kpi{background:var(--card);padding:16px 18px}
+.kpi b{display:block;font-family:var(--display);font-weight:700;font-size:1.75rem;line-height:1;
+  letter-spacing:-.03em;color:var(--id-a)}
+.kpi .lab{font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-soft);margin-top:7px;display:block;line-height:1.5}
+.kpi .obj{font-family:var(--mono);font-size:.64rem;color:var(--ink-soft);margin-top:5px;display:block;opacity:.8}
+
+.caseband{display:flex;gap:20px;flex-wrap:wrap;align-items:baseline;border-bottom:1px solid var(--rule);
+  padding-bottom:13px;margin-bottom:6px}
+.who{font-family:var(--mono);font-size:.76rem;letter-spacing:.03em}
+.who i{display:inline-block;width:10px;height:10px;margin-right:7px;vertical-align:-1px}
+.who.a i{background:var(--id-a)}
+.who.b i{background:var(--id-b)}
+.who.n i{background:var(--ink-soft)}
+.tl{list-style:none;margin:0;padding:0}
+.tl li{position:relative;margin:0}
+.ev{width:100%;text-align:left;background:transparent;border:0;display:grid;cursor:pointer;
+  grid-template-columns:26px 104px 14px 1fr;gap:0 14px;padding:14px 14px 14px 10px;border-radius:2px;
+  border-top:1px solid var(--rule);transition:background .15s ease}
+.tl li:first-child .ev{border-top:0}
+.ev:hover:not([disabled]){background:rgba(11,110,143,.07)}
+.ev .box{width:18px;height:18px;border:2px solid var(--rule);border-radius:2px;margin-top:3px;
+  position:relative;background:var(--card)}
+.ev.sel .box{background:var(--ink);border-color:var(--ink)}
+.ev.sel .box::after{content:"";position:absolute;left:4px;top:0;width:5px;height:10px;
+  border:solid var(--card);border-width:0 2px 2px 0;transform:rotate(43deg)}
+.ev .t{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--ink-soft);padding-top:3px}
+.ev .track{position:relative}
+.ev .track::before{content:"";position:absolute;left:5px;top:-15px;bottom:-15px;width:3px;background:var(--rule)}
+.ev .track::after{content:"";position:absolute;left:0;top:5px;width:13px;height:13px;border-radius:50%;
+  background:var(--card);border:3px solid var(--rule)}
+.ev[data-track="a"] .track::after{border-color:var(--id-a)}
+.ev[data-track="b"] .track::after{border-color:var(--id-b)}
+.ev[data-track="n"] .track::after{border-color:var(--ink-soft);border-radius:0}
+.ev.sel{background:rgba(19,30,35,.06)}
+.tl.revealed .ev{pointer-events:none}
+.tl.revealed .ev.err{background:rgba(168,50,42,.1);box-shadow:inset 3px 0 0 var(--alert)}
+.tl.revealed .ev.err .tag{color:var(--alert)}
+.tl.revealed .ev.err .box{background:var(--alert);border-color:var(--alert)}
+.tl.revealed .ev.err .box::after{content:"";position:absolute;left:4px;top:0;width:5px;height:10px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(43deg)}
+.hidden{display:none !important}
+.legend-fix{display:none;gap:8px 18px;flex-wrap:wrap;align-items:center;margin:16px 0 0;
+  padding:12px 14px;background:var(--paper);border-radius:3px}
+.tl.revealed + .legend-fix{display:flex}
+.legend-fix span{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);
+  font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
+.legend-fix i{width:13px;height:13px;border-radius:2px;display:inline-block}
+.legend-fix i.ok{background:var(--ok)}
+.legend-fix i.ko{background:var(--alert)}
+.legend-fix i.wr{background:var(--warn)}
+.ev .mark{display:none}
+.tl.revealed .ev.got .mark,
+.tl.revealed .ev.missed .mark,
+.tl.revealed .ev.wrong .mark{display:inline-block;margin-top:9px;font-family:var(--mono);
+  font-size:.62rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+  padding:4px 9px;border-radius:2px}
+.tl.revealed .ev.got .mark{background:var(--ok);color:#fff}
+.tl.revealed .ev.missed .mark{background:var(--alert);color:#fff}
+.tl.revealed .ev.wrong .mark{background:var(--warn);color:#fff}
+
+/* erreur repérée par le participant */
+.tl.revealed .ev.err.got{background:rgba(44,110,82,.10);box-shadow:inset 3px 0 0 var(--ok)}
+.tl.revealed .ev.err.got .tag{color:var(--ok)}
+.tl.revealed .ev.err.got .box{background:var(--ok);border-color:var(--ok)}
+/* moment coché à tort */
+.tl.revealed .ev.wrong{background:rgba(181,115,20,.10);box-shadow:inset 3px 0 0 var(--warn)}
+.tl.revealed .ev.wrong .box{background:var(--warn);border-color:var(--warn)}
+.tl.revealed .ev.wrong .box::after{content:"";position:absolute;left:7px;top:2px;width:2px;height:12px;
+  background:#fff;transform:rotate(45deg)}
+.tl.revealed .ev.wrong .box::before{content:"";position:absolute;left:7px;top:2px;width:2px;height:12px;
+  background:#fff;transform:rotate(-45deg)}
+.tl.revealed .ev.tainted .track::before{background:var(--hatch)}
+.tl.revealed .ev.tainted .track::after{background:var(--hatch);border-color:transparent}
+.ev .tag{display:block;font-family:var(--mono);font-size:.65rem;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-soft);margin-bottom:3px}
+.ev .txt{font-size:1rem;max-width:58ch}
+
+.actionbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:18px;
+  border-top:1px solid var(--rule);padding-top:18px}
+.counter{font-family:var(--mono);font-size:.76rem;color:var(--ink-soft)}
+
+.verdict{display:none;margin-top:22px}
+.verdict.show{display:block;animation:rise .3s ease}
+.stamp{font-family:var(--display);font-weight:700;font-size:.72rem;letter-spacing:.18em;
+  text-transform:uppercase;display:inline-block;padding:6px 14px;color:#fff;margin-bottom:14px}
+.stamp.hit{background:var(--ok)}
+.stamp.near{background:var(--id-b)}
+.stamp.miss{background:var(--alert)}
+.barriers{list-style:none;margin:16px 0 0;padding:0}
+.barriers li{border-top:1px solid var(--rule);padding:13px 0;display:grid;
+  grid-template-columns:110px 1fr;gap:16px;align-items:start}
+.barriers .when{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--alert)}
+.rule-out{margin-top:20px;padding:16px 18px;background:rgba(11,110,143,.09);border-left:3px solid var(--id-a)}
+.rule-out h3{margin-bottom:6px}
+.rule-out p{margin:0;font-size:.99rem}
+
+.ctq-res{margin-top:22px;border:1px solid var(--rule);background:var(--paper)}
+.ctq-res .head{font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-soft);padding:12px 18px;border-bottom:1px solid var(--rule)}
+.ctq-res .row{padding:15px 18px;border-bottom:1px solid var(--rule)}
+.ctq-res .row:last-child{border-bottom:0}
+.ctq-res .row.good{border-left:3px solid var(--ok)}
+.ctq-res .row.bad{border-left:3px solid var(--alert)}
+.ctq-res .who2{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;
+  display:block;margin-bottom:5px}
+.ctq-res .row.good .who2{color:var(--ok)}
+.ctq-res .row.bad .who2{color:var(--alert)}
+.ctq-res .prop{font-size:1rem;margin:0 0 8px;font-weight:600}
+.ctq-res .why{font-size:.95rem;color:var(--ink-soft);margin:0}
+
+.mask{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(19,30,35,.62);z-index:100;display:none;
+  align-items:center;justify-content:center;padding:20px}
+.mask.open{display:flex;animation:fade .2s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal{background:var(--card);border:1px solid var(--rule);border-radius:3px;
+  width:min(700px,100%);max-height:88vh;overflow-y:auto;padding:30px;
+  box-shadow:0 18px 50px rgba(19,30,35,.3);animation:rise .28s cubic-bezier(.2,.7,.3,1)}
+.modal .kicker{font-family:var(--display);font-size:.68rem;font-weight:700;letter-spacing:.19em;
+  text-transform:uppercase;color:var(--id-a);margin:0 0 10px}
+.modal h3{font-family:var(--display);font-weight:700;font-size:clamp(1.25rem,3vw,1.55rem);
+  letter-spacing:-.02em;margin:0 0 8px}
+.modal .sub{font-size:.97rem;color:var(--ink-soft);margin:0 0 22px}
+.ctq-list{display:flex;flex-direction:column;gap:10px;margin-bottom:22px}
+.ctq-opt{display:grid;grid-template-columns:24px 1fr;gap:14px;text-align:left;cursor:pointer;
+  background:var(--paper);border:1px solid var(--rule);border-radius:2px;padding:15px 17px;
+  font-family:var(--body);font-size:1rem;line-height:1.5;color:var(--ink);
+  transition:border-color .15s,background .15s}
+.ctq-opt:hover{border-color:var(--ink-soft)}
+.ctq-opt .dot{width:18px;height:18px;border:2px solid var(--rule);border-radius:50%;
+  margin-top:3px;position:relative;background:var(--card)}
+.ctq-opt.sel{border-color:var(--ink);background:var(--card)}
+.ctq-opt.sel .dot{border-color:var(--ink)}
+.ctq-opt.sel .dot::after{content:"";position:absolute;top:3px;right:3px;bottom:3px;left:3px;border-radius:50%;background:var(--ink)}
+.modal .foot{display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+  border-top:1px solid var(--rule);padding-top:18px;position:sticky;bottom:-30px;
+  background:var(--card);margin:0 -30px -30px;padding:18px 30px 22px}
+.modal .foot .warnmsg{font-family:var(--mono);font-size:.73rem;color:var(--alert);opacity:0;transition:opacity .2s}
+.modal .foot .warnmsg.show{opacity:1}
+
+.score{font-family:var(--mono);font-size:.76rem;color:var(--ink-soft)}
+.note{font-family:var(--mono);font-size:.78rem;line-height:1.7;color:var(--ink-soft);
+  border-left:2px solid var(--rule);padding-left:16px;max-width:62ch}
+
+@media (max-width:640px){
+  body{font-size:16px}
+  main{padding:26px 16px 130px}
+  .topbar-in,.spine,.nav-in{padding-left:16px;padding-right:16px}
+  .panel{padding:20px 17px}
+  .ev{grid-template-columns:24px 70px 14px 1fr;gap:0 9px;padding:13px 4px}
+  .ev .t{font-size:.71rem}
+  .barriers li{grid-template-columns:1fr;gap:4px}
+  .phasebudget{border-left:0;padding-left:0}
+  .defs{grid-template-columns:1fr}
+  .defs>div{padding:0}
+  .defs>div:first-child{border-right:0;border-bottom:1px solid var(--rule);padding-bottom:18px;margin-bottom:18px}
+  .modal{padding:22px 18px;max-height:92vh}
+  .modal .foot{margin:0 -18px -22px;padding:16px 18px 20px;bottom:-22px}
+  .modal .foot .btn{flex:1 1 auto}
+  .ctq-opt{grid-template-columns:20px 1fr;gap:11px;padding:13px 14px;font-size:.97rem}
+}
+@media print{
+  .topbar,.nav,.spine,.mask{display:none}
+  .step{display:block !important;page-break-after:always}
+  body{background:#fff}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+  .plate.a{transform:translate(-32%,-46%)}
+  .plate.b{transform:translate(32%,46%)}
+}
+
+.result-grid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:16px;align-items:stretch;margin-top:22px}
+.result-pane{border:1px solid var(--rule);background:var(--paper);border-radius:3px;overflow:hidden;min-width:0}
+.result-pane .ctq-res{margin:0;border:0;height:100%;background:transparent}
+.lesson-pane{padding:18px 20px;background:rgba(11,110,143,.075);border-top:4px solid var(--id-a)}
+.lesson-pane .pane-kicker{font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--id-a);display:block;margin-bottom:8px}
+.lesson-pane h3{margin:0 0 10px;font-size:1.05rem}
+.lesson-pane p{margin:0;font-size:1rem;line-height:1.55}
+.source-details{margin-top:14px;border:1px solid var(--rule);background:rgba(19,30,35,.03);border-radius:3px;overflow:hidden}
+.source-details summary{list-style:none;cursor:pointer;padding:13px 16px;font-family:var(--display);font-weight:700;font-size:.92rem;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.source-details summary::-webkit-details-marker{display:none}
+.source-details summary::after{content:"+";font-family:var(--mono);font-size:1.15rem;color:var(--id-a);line-height:1}
+.source-details[open] summary::after{content:"−"}
+.source-details[open] summary{border-bottom:1px solid var(--rule)}
+.sourcebox{padding:14px 16px 16px}
+.sourcebox .src-kicker{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:7px}
+.sourcebox p{margin:5px 0;font-size:.92rem;max-width:72ch}
+.sourcebox b{color:var(--ink)}
+@media (max-width:780px){.result-grid{grid-template-columns:1fr}}
+.none-btn{font-family:var(--display);font-weight:600;font-size:.86rem;background:transparent;color:var(--ink-soft);
+  border:1px dashed var(--rule);padding:10px 14px;border-radius:2px;min-height:42px}
+.none-btn.sel{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.trap-banner{margin-top:16px;padding:14px 17px;background:rgba(181,115,20,.10);border-left:3px solid var(--warn)}
+.trap-banner b{font-family:var(--display)}
+.final-results{display:grid;gap:10px;margin-top:14px}
+.final-row{display:grid;grid-template-columns:minmax(180px,1.4fr) .75fr .9fr;gap:10px;align-items:center;padding:11px 13px;border:1px solid var(--rule);background:var(--card);border-radius:3px}
+.final-row .case-name{font-family:var(--display);font-weight:600;font-size:.9rem}
+.final-row .mini{font-family:var(--mono);font-size:.7rem;letter-spacing:.03em;color:var(--ink-soft)}
+.final-row .mini.good{color:var(--ok);font-weight:700}
+.final-row .mini.bad{color:var(--alert);font-weight:700}
+.final-score{margin:0 0 12px;font-family:var(--display);font-weight:700;font-size:1.2rem}
+.final-fun{margin:12px 0 0;padding:12px 14px;background:rgba(11,110,143,.08);border-left:3px solid var(--id-a);font-family:var(--display);font-weight:600}
+@media (max-width:640px){.final-row{grid-template-columns:1fr}.final-row .mini{padding-left:2px}}
+
+
+.hidden{display:none !important}
+.completion{border-left:4px solid var(--ok);background:rgba(44,110,82,.08)}
+.completion h3{margin:0 0 8px}
+.completion p{margin:0;max-width:62ch}
+
+</style>
+
+</head>
+<body>
+
+<noscript>
+  <div class="jswarn">
+    <b>Cette page a besoin de JavaScript pour fonctionner.</b>
+    Elle a probablement été ouverte depuis un aperçu de pièce jointe (mail, messagerie, gestionnaire de fichiers), qui bloque les scripts.
+    Enregistrez le fichier puis ouvrez-le dans Safari ou Chrome : les boutons répondront normalement.
+  </div>
+</noscript>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brandmark">Identitovigilance · Atelier flash</div>
+    <div class="phasebudget" id="budget"></div>
+    <div class="clock" id="clock"><b>00:00</b><span id="total"></span></div>
+  </div>
+  <div class="spine" id="spine"></div>
+</header>
+
+<main id="main">
+
+<section class="step on" data-mins="3">
+  <div class="hero" aria-hidden="true">
+    <div class="merge"></div>
+    <div class="plate a">
+      <div class="fld">Identité 1 · dossier ouvert</div>
+      <div class="nm">HOARAU Marie-Ange</div>
+      <div class="dob">née le 04/09/1951</div>
+    </div>
+    <div class="plate b">
+      <div class="fld">Identité 2 · dossier ouvert</div>
+      <div class="nm">HOARAU Marie-Angèle</div>
+      <div class="dob">née le 14/09/1951</div>
+    </div>
+  </div>
+
+  <p class="eyebrow">Semaine de la Sécurité des Patients · 14-18 septembre 2026</p>
+  <h1>Deux patients,<br>un seul dossier.</h1>
+  <p class="lede">Cinq situations simples construites à partir des procédures ASDR. Pour chacune : <b>où repérez-vous un écart, et que faites-vous maintenant ?</b></p>
+
+  <div class="panel">
+    <h3 style="margin-bottom:6px">Comment ça marche</h3>
+    <p style="margin-bottom:22px">Chaque cas se déroule en trois temps. Comptez environ quatre minutes par cas.</p>
+    <div class="defs">
+      <div>
+        <span class="tagline">Temps 1 · repérer</span>
+        <h3>Lisez la chronologie</h3>
+        <p style="margin:0">Cochez <b>tous les moments où vous repérez un écart par rapport à la pratique attendue.</b> Plusieurs réponses sont possibles. Si tout vous semble correct, choisissez « Tout est conforme, aucune erreur ».</p>
+      </div>
+      <div>
+        <span class="tagline">Temps 2 · décider</span>
+        <h3>Choisissez la conduite à tenir</h3>
+        <p style="margin:0">Une seule proposition est conforme. Choisissez celle que vous appliqueriez réellement.</p>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--rule);margin-top:22px;padding-top:20px">
+      <span class="tagline">Temps 3 · comprendre</span>
+      <h3 style="margin:6px 0 8px">La correction s'affiche</h3>
+      <p style="margin:0">La chronologie est corrigée d'abord. Ensuite vous répondez à la conduite à tenir. Une fois le cas terminé, vous passez au suivant.</p>
+    </div>
+  </div>
+</section>
+
+<div id="cases"></div>
+
+
+<section class="step" data-mins="3">
+  <p class="eyebrow">Séquence 7 sur 7 · 3 minutes · synthèse</p>
+  <h2>Votre résultat en un coup d’œil.</h2>
+  <p class="lede">Un récap rapide des cinq cas : chronologie et conduite à tenir.</p>
+  <div class="panel">
+    <p class="final-score" id="finalscore">Résultat</p>
+    <div class="final-results" id="finalresults"></div>
+    <p class="final-fun" id="finalfun"></p>
+  </div>
+  <div class="panel">
+    <h3 style="margin-bottom:10px">Les 5 barrières ASDR à garder en tête</h3>
+    <div class="q"><p class="stem"><span class="ref">HAD</span><b>1.</b> À chaque changement de patient : questions ouvertes puis concordance avec le bon dossier et les bons supports.</p></div>
+    <div class="q"><p class="stem"><span class="ref">Dialyse</span><b>2.</b> Le poste n’est pas une identité. Les tubes ne sont pas pré-étiquetés ; l’étiquetage se fait immédiatement au fauteuil après le prélèvement.</p></div>
+    <div class="q"><p class="stem"><span class="ref">INS</span><b>3.</b> Une discordance sur un trait strict ne se force pas : on ne qualifie pas tant que le doute n’est pas levé.</p></div>
+    <div class="q"><p class="stem"><span class="ref">Fusion</span><b>4.</b> Deux dossiers qui se ressemblent ne sont pas forcément un doublon. La fusion suit le circuit de validation prévu.</p></div>
+    <div class="q"><p class="stem"><span class="ref">Création</span><b>5.</b> Avant toute nouvelle identité : recherche préalable dans Hôpital Manager. Un patient déjà connu conserve son IPP ASDR.</p></div>
+  </div>
+  <p class="score" id="scoreline"></p>
+  <div class="panel completion hidden" id="completion" role="status" aria-live="polite">
+    <span class="stamp hit">Atelier terminé</span>
+    <h3>Bien joué.</h3>
+    <p>Les cinq cas sont terminés. Les corrections restent accessibles avec le bouton « Précédent ».</p>
+  </div>
+  <button type="button" class="btn ghost" id="restart">Recommencer</button>
+</section>
+
+</main>
+
+<nav class="nav">
+  <div class="nav-in">
+    <button type="button" class="btn ghost" id="prev" disabled>Précédent</button>
+    <button type="button" class="btn" id="next">Suivant</button>
+    <span class="hint" id="hint"></span>
+  </div>
+</nav>
+
+<div class="mask" id="mask" role="dialog" aria-modal="true" aria-labelledby="m-title">
+  <div class="modal">
+    <p class="kicker" id="m-kicker">Conduite à tenir</p>
+    <h3 id="m-title">Que faites-vous maintenant ?</h3>
+    <p class="sub" id="m-sub">Quatre propositions. Une seule est conforme.</p>
+    <div class="ctq-list" id="m-list"></div>
+    <div class="foot">
+      <button type="button" class="btn" id="m-go">Voir l'analyse</button>
+      <button type="button" class="btn ghost" id="m-cancel">Revenir au cas</button>
+      <span class="warnmsg" id="m-warn">Choisissez une proposition avant de continuer.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var CTQ_S1=null;
+
+var S1_RULE=null;
+
+var CASES=[
+{
+  mins:4, theme:"Cas 1 · HAD · même domicile",
+  title:"Le domicile des B.",
+  lede:"M. et Mme B. sont tous les deux suivis en HAD à la même adresse. Deux personnes, deux dossiers, deux prises en charge.",
+  legend:{a:"M. B. — dossier A", b:"Mme B. — dossier B", n:"Vérification / coordination"},
+  events:[
+    {t:"09:00",track:"a",tag:"Visite",txt:"L'IDE demande à M. B. son nom de naissance, son premier prénom et sa date de naissance, puis vérifie le dossier affiché avant le soin."},
+    {t:"09:30",track:"b",tag:"Deuxième patient",txt:"Mme B. demande à l'IDE de regarder son pansement. L'IDE lui demande : « Vous êtes bien Mme B. ? » Elle répond oui. L'IDE passe au soin et saisit l'observation dans le dossier de M. B., resté ouvert."},
+    {t:"10:00",track:"n",tag:"Repérage",txt:"Avant de quitter le domicile, l'IDE relit la transmission et voit que l'observation de Mme B. apparaît dans le dossier de M. B."}
+  ],
+  errors:[1],
+  barriers:[
+    {when:"09:30",txt:"Deux barrières sautent au même moment : la question fermée « Vous êtes bien Mme B. ? » ne remplace pas les questions ouvertes, et le dossier affiché n'est pas celui de la personne soignée. À chaque changement de patient, il faut refaire l'identification puis contrôler la concordance avec le dossier."}
+  ],
+  extraNote:"Le « oui » de Mme B. peut rassurer, mais ce n'est pas une identification active. La procédure demande au patient communicant de donner lui-même son nom de naissance, son premier prénom et sa date de naissance.",
+  ruleTitle:"La leçon ASDR",
+  rule:"Chez un couple ou plusieurs personnes suivies au même domicile, la familiarité est justement une situation à risque. On ne passe jamais d'un patient à l'autre sur la base du prénom, du lien familial ou du dossier déjà ouvert.",
+  source:{kind:"Cas pédagogique construit à partir des procédures ASDR",fap:"Aucune FAP — situation pédagogique",procedure:"GQ-PROC-613 — Procédure identitovigilance secondaire + Charte d'identitovigilance ASDR v2",note:"Le cas illustre le contrôle d'identité à chaque changement de patient au domicile et le circuit de signalement/correction en cas d'erreur d'identité."},
+  ctq:{question:"Vous repérez l'erreur avant de quitter le domicile. Que faites-vous ?",options:[
+    {txt:"Corriger vous-même le dossier de M. B., puis recopier l'observation dans celui de Mme B.",ok:false,why:"Non. Dès qu'il y a une erreur d'identité, la correction ne doit pas être improvisée par la personne qui la découvre. Il faut sécuriser la situation et la faire traiter dans le circuit prévu."},
+    {txt:"Identifier à nouveau Mme B., prévenir l'IDEC / le cadre, déclarer immédiatement l'événement dans la FAP et faire prendre en charge la correction par la CIV.",ok:true,why:"Oui. On sécurise d'abord l'identité, on prévient l'équipe, puis on trace l'événement. La charte prévoit que toute FAP d'identitovigilance est transmise à la CIV, qui organise les mesures correctrices avec les professionnels concernés."},
+    {txt:"Laisser l'observation dans le dossier de M. B. mais ajouter un commentaire indiquant qu'elle concerne son épouse.",ok:false,why:"Non. Une donnée concernant Mme B. ne doit pas rester dans le dossier de M. B. Un commentaire ne transforme pas une donnée mal rattachée en donnée correcte."},
+    {txt:"Ne rien signaler puisque l'erreur a été repérée avant qu'un autre professionnel ne lise la transmission.",ok:false,why:"Non. La procédure demande la déclaration immédiate des événements indésirables et quasi-événements liés à l'identité. C'est justement ce qui permet d'éviter la répétition."}
+  ]}
+},
+{
+  mins:4, theme:"Cas 2 · Dialyse · prélèvement",
+  title:"La salle de huit postes",
+  lede:"Deux patientes portent le même nom de naissance. L'une change exceptionnellement de poste ce matin.",
+  legend:{a:"Patiente habituellement poste 3",b:"Patiente habituellement poste 5",n:"Organisation de la salle"},
+  events:[
+    {t:"Veille",track:"n",tag:"Préparation",txt:"Les étiquettes des tubes du bilan mensuel sont imprimées à l'avance et classées par numéro de poste."},
+    {t:"07:50",track:"n",tag:"Organisation",txt:"Une place se libère : la patiente habituellement au poste 3 est installée au poste 5."},
+    {t:"07:55",track:"a",tag:"Repère visuel",txt:"En complément, l'IDE consulte le trombinoscope du DPI. La photo correspond bien à la patiente installée."},
+    {t:"08:00",track:"a",tag:"Accueil",txt:"L'IDE demande : « Vous êtes bien la patiente du poste 5 ? » La patiente répond oui."},
+    {t:"08:10",track:"a",tag:"Avant prélèvement",txt:"L'IDE prend le tube déjà étiqueté dans la pochette du poste 5. Elle remarque juste avant de prélever que la date de naissance imprimée n'est pas celle annoncée par la patiente."}
+  ],
+  errors:[0,3],
+  barriers:[
+    {when:"Veille",txt:"La procédure ASDR interdit le pré-étiquetage des tubes. Le matériel se prépare sans identité sur les tubes ; l'étiquette est posée immédiatement après le prélèvement, au fauteuil."},
+    {when:"08:00",txt:"Le numéro de poste n'est pas un identifiant. À l'arrivée, le patient doit donner son identité par questions ouvertes ; lors de l'installation, cette identité est recroisée avec le générateur et la feuille de séance."}
+  ],
+  extraNote:"Deux petits pièges : le changement de poste est normal, et le trombinoscope est bien un outil prévu par l'ASDR. Mais la photo reste une mesure complémentaire : chez une patiente communicante, elle ne remplace pas les questions ouvertes.",
+  ruleTitle:"La leçon ASDR",
+  rule:"En dialyse, la routine et la stabilité des places peuvent donner un faux sentiment de sécurité. La barrière reste la même à chaque séance : identité déclarée, concordance des supports, puis étiquetage au fauteuil après le prélèvement.",
+  source:{kind:"Cas pédagogique construit à partir des procédures ASDR",fap:"Aucune FAP — situation pédagogique",procedure:"GQ-PROC-613 — Procédure identitovigilance secondaire",note:"Le cas reprend les règles Dialyse : questions ouvertes, contrôle croisé au poste et aucun tube pré-étiqueté ; l'étiquetage se fait immédiatement au fauteuil après le prélèvement."},
+  ctq:{question:"La discordance est vue avant le prélèvement. Que faites-vous ?",options:[
+    {txt:"Corriger au stylo l'étiquette du poste 5 et poursuivre, puisque la patiente a confirmé son identité.",ok:false,why:"Non. La procédure ne prévoit pas d'adapter une étiquette préparée à l'avance. Le problème est justement d'avoir associé le tube au poste au lieu de l'associer au patient."},
+    {txt:"Ne pas utiliser ce tube pré-étiqueté, refaire l'identification par questions ouvertes, réaliser le prélèvement avec le bon matériel puis étiqueter immédiatement au fauteuil ; déclarer le quasi-événement.",ok:true,why:"Oui. C'est exactement la barrière prévue par la procédure : pas de tube pré-étiqueté, identification active, puis étiquetage immédiat au fauteuil. Le quasi-événement doit aussi être déclaré."},
+    {txt:"Remettre la patiente à son poste habituel pour que les étiquettes redeviennent cohérentes.",ok:false,why:"Non. On ne sécurise pas l'identité en figeant les patients à une place. Un poste est un emplacement, pas une identité."},
+    {txt:"Demander à une collègue si elle reconnaît la patiente avant de prélever.",ok:false,why:"La reconnaissance peut aider, notamment avec le trombinoscope, mais elle ne remplace pas le contrôle prévu : questions ouvertes et concordance avec les supports."}
+  ]}
+},
+{
+  mins:4, theme:"Cas 3 · INS · discordance",
+  title:"Le patient de passage",
+  lede:"Un patient vient pour quelques séances de dialyse pendant ses vacances. Son dossier local a été préparé avant son arrivée.",
+  legend:{a:"Identité locale",b:"Identité INSi",n:"Secrétariat"},
+  events:[
+    {t:"J-3",track:"n",tag:"Préparation",txt:"Le secrétariat recherche le patient dans Hôpital Manager avec sa date de naissance. Aucun résultat : une identité provisoire est créée à partir des informations reçues."},
+    {t:"J0",track:"a",tag:"Accueil",txt:"Le patient présente sa carte nationale d'identité, expirée depuis huit mois. Le nom, le premier prénom, le sexe, la date et le lieu de naissance concordent avec le dossier local."},
+    {t:"J0",track:"b",tag:"Appel INSi",txt:"INSi renvoie une date de naissance différente de celle portée sur la pièce d'identité et dans le dossier local."},
+    {t:"J0",track:"n",tag:"Décision",txt:"Comme le nom et le prénom correspondent, le dossier est quand même passé au statut « identité qualifiée »."}
+  ],
+  errors:[3],
+  barriers:[
+    {when:"J0",txt:"Une discordance sur la date de naissance est une discordance sur un trait strict. La qualification ne doit pas être réalisée tant que le doute n'est pas levé."}
+  ],
+  extraNote:"Deux éléments peuvent piéger : la création provisoire à J-3 n'est pas une erreur, et une carte nationale d'identité dont la date de validité est dépassée ne bloque pas, à elle seule, l'attribution du statut « identité validée ». Le vrai problème est d'avoir qualifié malgré la discordance INSi sur la date de naissance.",
+  ruleTitle:"La leçon ASDR",
+  rule:"Une INS ne se qualifie pas “presque”. Pour les traits stricts, la cohérence doit être suffisante selon les règles prévues. Si la discordance bloque, on garde le statut adapté et on fait traiter l'anomalie au lieu de forcer la qualification.",
+  source:{kind:"Cas pédagogique construit à partir des procédures ASDR",fap:"Aucune FAP — situation pédagogique",procedure:"GQ-PROC-568 + GQ-PROC-651 + GQ-DOC-1102 — création, discordances et qualification de l'INS",note:"Le cas montre une discordance sur un trait strict : l'identité ne doit pas être qualifiée tant que le doute n'est pas levé."},
+  ctq:{question:"Que faites-vous devant cette discordance de date de naissance ?",options:[
+    {txt:"Qualifier quand même l'INS puisque quatre autres éléments concordent.",ok:false,why:"Non. La date de naissance fait partie des traits stricts. Une discordance de ce type ne se compense pas avec les autres éléments."},
+    {txt:"Ne pas qualifier l'identité, conserver le statut adapté à la situation et faire remonter le problème au référent identitovigilance / à la CIV pour traitement.",ok:true,why:"Oui. C'est la conduite prévue lorsque les données du dossier et le retour INSi ne permettent pas une qualification sûre."},
+    {txt:"Modifier la date du dossier pour la faire correspondre automatiquement à INSi.",ok:false,why:"Non. Une discordance doit être comprise avant de modifier un trait strict. La procédure prévoit de lever le doute, pas d'aligner automatiquement le dossier sur la première source disponible."},
+    {txt:"Abandonner le dossier et en créer un nouveau avec la date renvoyée par INSi.",ok:false,why:"Non. Créer une nouvelle identité sans raison créerait un doublon. La recherche et la gestion de l'identité existante viennent avant toute nouvelle création."}
+  ]}
+},
+{
+  mins:4, theme:"Cas 4 · Fusion · doublon suspecté",
+  title:"La fusion bien intentionnée",
+  lede:"Deux patients appelés Jean Payet vivent à la même adresse. Ils sont père et fils et ont chacun leur propre IPP.",
+  legend:{a:"Jean Payet — père",b:"Jean Payet — fils",n:"Secrétariat / SI"},
+  events:[
+    {t:"14:20",track:"n",tag:"Repérage",txt:"Une secrétaire voit deux dossiers PAYET Jean avec la même adresse. Elle pense à un possible doublon."},
+    {t:"14:25",track:"n",tag:"Vérification",txt:"Elle compare les deux IPP et les traits d'identité. Les dates de naissance sont différentes de vingt-cinq ans."},
+    {t:"14:30",track:"n",tag:"Demande",txt:"Malgré cette différence, elle considère qu'il s'agit probablement d'une faute de saisie et demande la fusion des deux dossiers."},
+    {t:"14:40",track:"n",tag:"Contrôle SI",txt:"Avant toute fusion, le SI contacte le médecin coordonnateur et lui transmet les deux IPP pour validation et choix de l'IPP à conserver."},
+    {t:"14:50",track:"n",tag:"Arrêt du processus",txt:"Le médecin confirme qu'il s'agit bien de deux personnes différentes. La fusion n'est pas réalisée."}
+  ],
+  errors:[2],
+  barriers:[
+    {when:"14:30",txt:"Le fait d'avoir repéré deux dossiers ressemblants n'est pas une erreur, et comparer les deux IPP est au contraire le bon réflexe. L'écart apparaît quand la différence de date de naissance est écartée comme une simple faute de saisie et qu'une fusion est demandée malgré ce trait strict discordant."}
+  ],
+  extraNote:"Le contrôle du SI à 14h40 est conforme à la procédure de fusion : en HAD, le SI se rapproche du médecin coordonnateur, qui valide la fusion et précise l'IPP à conserver. Le piège ici est de croire que « même nom + même adresse » suffit à prouver un doublon.",
+  ruleTitle:"La leçon ASDR",
+  rule:"Une fusion est une opération encadrée. On peut signaler un doublon suspecté, mais on ne demande pas de fusion simplement parce que deux dossiers se ressemblent. La validation médicale prévue dans le circuit est une vraie barrière de sécurité.",
+  source:{kind:"Cas pédagogique construit à partir des procédures ASDR",fap:"Aucune FAP — situation pédagogique",procedure:"GQ-PROC-433 — Fusion des dossiers patients en Dialyse et HAD + Charte d'identitovigilance ASDR",note:"Le cas illustre le contrôle préalable avant une fusion et la validation médicale prévue dans le circuit transmis."},
+  ctq:{question:"Vous êtes la personne du SI qui reçoit la demande. Quelle conduite est conforme ?",options:[
+    {txt:"Fusionner les dossiers puisque le nom et l'adresse sont identiques, puis corriger la date de naissance ensuite.",ok:false,why:"Non. Une fusion entre deux personnes différentes créerait une collision. Le nom et l'adresse ne suffisent pas."},
+    {txt:"Suspendre la fusion et appliquer le circuit : vérifier la demande avec les deux IPP et obtenir la validation du médecin coordonnateur, qui précise l'IPP à conserver si le doublon est confirmé.",ok:true,why:"Oui. C'est le circuit prévu pour l'HAD. Ici, la validation médicale permet justement de constater qu'il ne s'agit pas d'un doublon et d'arrêter la fusion."},
+    {txt:"Supprimer le dossier créé le plus récemment pour éviter le risque de doublon.",ok:false,why:"Non. L'ancienneté du dossier ne prouve pas quelle identité doit être conservée et la suppression n'est pas une décision à prendre au jugement."},
+    {txt:"Demander à la secrétaire de choisir elle-même l'IPP à conserver avant de renvoyer la demande.",ok:false,why:"Non. La procédure prévoit la validation du médecin concerné et l'IPP à conserver est précisé dans ce circuit, pas choisi au seul niveau administratif."}
+  ]}
+},
+{
+  mins:4, theme:"Cas 5 · ASDR · recherche avant création",
+  title:"Le patient qui existe déjà",
+  lede:"Un patient suivi en dialyse depuis plusieurs années est admis en HAD. Il possède déjà un IPP ASDR dans Hôpital Manager.",
+  legend:{a:"IPP existant",b:"Nouvel IPP créé en HAD",n:"Secrétariat / SI"},
+  events:[
+    {t:"08:30",track:"n",tag:"Recherche",txt:"Le secrétariat recherche le patient uniquement avec son nom. Le résultat attendu n'apparaît pas immédiatement et la recherche n'est pas reprise avec la date de naissance."},
+    {t:"08:32",track:"a",tag:"Information patient",txt:"Le patient précise qu'il est déjà suivi en dialyse à l'ASDR depuis plusieurs années."},
+    {t:"08:35",track:"b",tag:"Création",txt:"Un nouvel IPP est créé pour l'admission HAD sans nouvelle recherche dans Hôpital Manager avec la date de naissance."},
+    {t:"11:00",track:"n",tag:"Détection",txt:"Lors d'un échange avec la dialyse, l'équipe comprend que le patient possède déjà un autre IPP ASDR."},
+    {t:"11:15",track:"n",tag:"Signalement",txt:"Le doublon est transmis au SI avec les deux IPP afin d'engager le circuit de traitement."}
+  ],
+  errors:[0,2],
+  barriers:[
+    {when:"08:30",txt:"La procédure ASDR prévoit une recherche préalable avec la date de naissance, éventuellement complétée du nom et du prénom. S'arrêter à une recherche par nom seul ne suffit pas avant de conclure que le patient n'existe pas."},
+    {when:"08:35",txt:"Créer un nouvel IPP alors que la recherche n'a pas été menée selon le circuit prévu crée le doublon. Hôpital Manager est le référentiel d'identités de l'ASDR et l'IPP doit rester unique et constant pour un même patient."}
+  ],
+  extraNote:"L'information donnée par le patient à 08h32 n'est pas, à elle seule, une preuve d'identité. C'est en revanche un signal très clair pour reprendre correctement la recherche avant toute création.",
+  ruleTitle:"La leçon ASDR",
+  rule:"Le meilleur traitement d'un doublon, c'est de ne pas le créer. Avant d'ouvrir une nouvelle identité, on recherche correctement le patient dans le référentiel unique. Si un doublon existe déjà, on passe par le circuit SI et médical prévu, pas par une correction improvisée.",
+  source:{kind:"Cas pédagogique construit à partir des procédures ASDR",fap:"Aucune FAP — situation pédagogique",procedure:"GQ-PROC-568 + Charte d'identitovigilance ASDR + GQ-PROC-433 + GQ-PROC-386",note:"Le cas reprend la recherche obligatoire avant toute création d'identité, l'IPP unique ASDR et le circuit de traitement d'un doublon déjà créé."},
+  ctq:{question:"Le doublon vient d'être détecté. Que faites-vous ?",options:[
+    {txt:"Choisir le dossier qui contient le plus d'informations et demander aux équipes d'utiliser uniquement celui-là.",ok:false,why:"Non. Utiliser un dossier sans traiter officiellement le doublon laisse deux IPP actifs et ne sécurise pas les interfaces."},
+    {txt:"Informer le SI avec les deux IPP et appliquer le circuit de fusion prévu ; en HAD, le médecin coordonnateur valide et précise l'IPP à conserver. Le SI vérifie aussi les impacts éventuels dans les applications concernées.",ok:true,why:"Oui. C'est le circuit documenté. Si des commandes ont été rattachées au mauvais dossier HAD, la procédure TraceMed prévoit aussi leur contrôle et, si nécessaire, leur réaffectation au bon patient."},
+    {txt:"Créer un troisième dossier propre, puis archiver les deux premiers une fois les données regroupées.",ok:false,why:"Non. Cela ajouterait un nouvel IPP au même patient et aggraverait le doublon."},
+    {txt:"Supprimer immédiatement le nouvel IPP et considérer le problème réglé.",ok:false,why:"Non. Avant toute suppression ou fusion, il faut vérifier les documents et les éventuels impacts dans les logiciels, puis suivre le circuit prévu."}
+  ]}
+}
+];
+
+var $=function(id){return document.getElementById(id)};
+
+var host=$("cases"), anchor=host.nextElementSibling;
+CASES.forEach(function(C,ci){
+  var sec=document.createElement("section");
+  sec.className="step"; sec.setAttribute("data-mins",C.mins);
+  var lis="";
+  C.events.forEach(function(ev,i){
+    lis+='<li><button class="ev" type="button" data-c="'+ci+'" data-i="'+i+'" data-track="'+ev.track+'">'+
+         '<span class="box"></span><span class="t">'+ev.t+'</span><span class="track"></span>'+
+         '<span class="txt"><span class="tag">'+ev.tag+'</span>'+ev.txt+
+         '<span class="mark"></span></span></button></li>';
+  });
+  sec.innerHTML=
+    '<p class="eyebrow">Séquence '+(ci+2)+' sur '+(CASES.length+2)+' · '+C.mins+' minutes · '+C.theme+'</p>'+
+    '<h2>'+C.title+'</h2>'+
+    '<p class="lede">'+C.lede+'</p>'+
+    '<div class="panel">'+
+      '<div class="caseband">'+
+        '<span class="who a"><i></i>'+C.legend.a+'</span>'+
+        '<span class="who b"><i></i>'+C.legend.b+'</span>'+
+        '<span class="who n"><i></i>'+C.legend.n+'</span>'+
+      '</div>'+
+      '<ul class="tl" id="tl'+ci+'">'+lis+'</ul>'+
+      '<div class="legend-fix">'+
+        '<span><i class="ok"></i>Trouvé : erreur correctement repérée</span>'+
+        '<span><i class="ko"></i>Non coché : erreur que vous avez manquée</span>'+
+        '<span><i class="wr"></i>Coché à tort : ce moment n\'est pas une erreur</span>'+
+      '</div>'+
+      '<p class="note" style="margin-top:18px">Cochez <b>tous</b> les moments où vous repérez un écart par rapport à la pratique attendue. Plusieurs réponses sont possibles. Si tout vous semble correct, choisissez « Tout est conforme, aucune erreur ».</p>'+
+      '<div class="actionbar" id="ab'+ci+'">'+
+        '<button type="button" class="btn" data-check="'+ci+'" disabled>Valider mes réponses</button>'+
+        '<button type="button" class="none-btn" data-none="'+ci+'">Tout est conforme, aucune erreur</button>'+
+        '<span class="counter" id="cnt'+ci+'">Aucun moment sélectionné</span>'+
+      '</div>'+
+      '<div class="verdict" id="v'+ci+'"></div>'+
+      '<div class="actionbar hidden" id="ab2'+ci+'">'+
+        '<button type="button" class="btn" data-open="'+ci+'">Choisir la conduite à tenir</button>'+
+        '<span class="counter">Une seule réponse conforme</span>'+
+      '</div>'+
+      '<div class="verdict" id="w'+ci+'"></div>'+
+    '</div>';
+  host.parentNode.insertBefore(sec, anchor);
+});
+
+var steps=[].slice.call(document.querySelectorAll(".step"));
+var idx=0, started=false, t0=0, tick=null;
+var picks=CASES.map(function(){return []});
+var done=CASES.map(function(){return false});
+var caseComplete=CASES.map(function(){return false});
+var results=CASES.map(function(){return null});
+var noneChoice=CASES.map(function(){return false});
+var ctqScore={ok:0,total:0};
+var ctqResults=CASES.map(function(){return null});
+var finished=false;
+
+var totalMin=steps.reduce(function(s,el){return s+parseInt(el.getAttribute("data-mins"),10)},0);
+$("total").textContent="/ "+totalMin+":00";
+
+var spine=$("spine");
+steps.forEach(function(){spine.appendChild(document.createElement("i"))});
+var bars=[].slice.call(spine.children);
+
+function pad(n){return (n<10?"0":"")+n}
+function fmt(s){return pad(Math.floor(s/60))+":"+pad(s%60)}
+function runClock(){
+  var s=Math.floor((Date.now()-t0)/1000), c=$("clock");
+  c.firstElementChild.textContent=fmt(s);
+  c.className = (s>totalMin*60) ? "clock over" : "clock";
+}
+function startClock(){
+  if(started) return;
+  started=true; t0=Date.now(); runClock(); tick=setInterval(runClock,1000);
+}
+$("main").addEventListener("click",startClock,false);
+
+function refreshNext(){
+  var last=idx===steps.length-1;
+  var allowed=true;
+  if(idx>0 && idx<=CASES.length) allowed=caseComplete[idx-1];
+  $("next").disabled = last ? finished : !allowed;
+  $("next").textContent = last ? (finished ? "Atelier terminé" : "Terminer l'atelier") : "Suivant";
+
+  if(idx>0 && idx<=CASES.length && !caseComplete[idx-1]){
+    $("hint").textContent=done[idx-1]
+      ? "Étape 2/2 : choisissez la conduite à tenir"
+      : "Étape 1/2 : validez la chronologie";
+  } else if(last && !finished){
+    $("hint").textContent="Synthèse finale";
+  } else if(finished){
+    $("hint").textContent="Parcours terminé";
+  } else if(idx>0 && idx<=CASES.length){
+    $("hint").textContent="Cas terminé · vous pouvez continuer";
+  } else {
+    $("hint").textContent="";
+  }
+}
+
+function show(i){
+  idx=Math.max(0,Math.min(steps.length-1,i));
+  steps.forEach(function(s,n){ if(n===idx){s.classList.add("on")}else{s.classList.remove("on")} });
+  bars.forEach(function(b,n){b.className = n<idx?"done":(n===idx?"now":"")});
+  $("prev").disabled = idx===0;
+  var m=steps[idx].getAttribute("data-mins");
+  $("budget").textContent="Séquence "+(idx+1)+" / "+steps.length+" · "+m+" min";
+  if(idx===steps.length-1) updateScore();
+  refreshNext();
+  window.scrollTo({top:0,behavior:"instant"});
+}
+function finishWorkshop(){
+  if(finished) return;
+  finished=true;
+  clearInterval(tick);
+  var c=$("completion");
+  if(c) c.classList.remove("hidden");
+  refreshNext();
+  if(c){try{ c.scrollIntoView({behavior:"smooth",block:"center"}) }catch(err){ try{ c.scrollIntoView(true) }catch(e2){} }}
+}
+function advance(){
+  if($("next").disabled) return;
+  startClock();
+  if(idx===steps.length-1){finishWorkshop();return;}
+  show(idx+1);
+}
+$("next").addEventListener("click",advance);
+$("prev").addEventListener("click",function(){show(idx-1)});
+document.addEventListener("keydown",function(e){
+  var tn=(e.target.tagName||"").toUpperCase();
+  if(tn==="INPUT"||tn==="TEXTAREA") return;
+  if($("mask").classList.contains("open")){ if(e.key==="Escape") closeModal(); return; }
+  if(e.key==="ArrowRight"){advance()}
+  if(e.key==="ArrowLeft"){show(idx-1)}
+});
+
+[].forEach.call(document.querySelectorAll(".quizblock .q"),function(q){
+  var ans=parseInt(q.getAttribute("data-answer"),10);
+  var opts=[].slice.call(q.querySelectorAll(".opt"));
+  opts.forEach(function(btn,i){
+    btn.addEventListener("click",function(){
+      opts.forEach(function(b,j){
+        b.disabled=true;
+        b.classList.add(j===ans?"right":(j===i?"wrong":"picked"));
+        if(j!==ans&&j!==i) b.classList.remove("picked");
+      });
+      q.querySelector(".fb").classList.add("show");
+    });
+  });
+});
+
+function onEv(b){
+  var ci=parseInt(b.getAttribute("data-c"),10), i=parseInt(b.getAttribute("data-i"),10);
+  if(done[ci]) return;
+  if(noneChoice[ci]){
+    noneChoice[ci]=false;
+    var nb=document.querySelector('[data-none="'+ci+'"]');
+    if(nb) nb.classList.remove("sel");
+  }
+  var arr=picks[ci], p=arr.indexOf(i);
+  if(p>-1){arr.splice(p,1); b.classList.remove("sel")}
+  else {arr.push(i); b.classList.add("sel")}
+  var n=arr.length;
+  $("cnt"+ci).textContent = n===0 ? "Aucun moment sélectionné"
+    : (n===1 ? "1 moment sélectionné" : n+" moments sélectionnés");
+  document.querySelector('[data-check="'+ci+'"]').disabled = n===0;
+}
+
+function onNone(b){
+  var ci=parseInt(b.getAttribute("data-none"),10);
+  if(done[ci]) return;
+  noneChoice[ci]=!noneChoice[ci];
+  b.classList.toggle("sel",noneChoice[ci]);
+  if(noneChoice[ci]){
+    picks[ci]=[];
+    [].forEach.call($("tl"+ci).querySelectorAll(".ev"),function(ev){ev.classList.remove("sel")});
+    $("cnt"+ci).textContent="Vous estimez que la chronologie est conforme";
+  }else{
+    $("cnt"+ci).textContent="Aucun moment sélectionné";
+  }
+  document.querySelector('[data-check="'+ci+'"]').disabled = !noneChoice[ci] && picks[ci].length===0;
+}
+[].forEach.call(document.querySelectorAll("[data-none]"),function(b){
+  b.addEventListener("click",function(){onNone(b)});
+});
+
+var current=null, currentCtq=null, chosen=null;
+
+function openModal(key,ctq,kicker){
+  current=key; currentCtq=ctq; chosen=null;
+  $("m-kicker").textContent=kicker;
+  $("m-title").textContent=ctq.question;
+  $("m-warn").classList.remove("show");
+  var list=$("m-list");
+  list.innerHTML="";
+  ctq.options.forEach(function(o,i){
+    var b=document.createElement("button");
+    b.type="button"; b.className="ctq-opt"; b.setAttribute("data-pick",i);
+    b.innerHTML='<span class="dot"></span><span>'+o.txt+'</span>';
+    b.addEventListener("click",function(){
+      chosen=i;
+      [].forEach.call(list.children,function(c,j){ if(j===i){c.classList.add("sel")}else{c.classList.remove("sel")} });
+      $("m-warn").classList.remove("show");
+    });
+    list.appendChild(b);
+  });
+  $("mask").classList.add("open");
+  document.body.classList.add("locked");
+}
+function closeModal(){
+  $("mask").classList.remove("open");
+  document.body.classList.remove("locked");
+}
+$("m-cancel").addEventListener("click",closeModal);
+$("mask").addEventListener("click",function(e){ if(e.target===$("mask")) closeModal(); });
+
+$("m-go").addEventListener("click",function(){
+  if(chosen===null){ $("m-warn").classList.add("show"); return; }
+  var k=current, pick=chosen;
+  closeModal();
+  if(k==="s1") revealS1(pick); else reveal(k,pick);
+});
+
+function onOpen(b){
+  if(b.disabled) return;
+  var ci=parseInt(b.getAttribute("data-open"),10);
+  openModal(ci,CASES[ci].ctq,"Conduite à tenir · cas "+(ci+1));
+}
+function onCheck(b){
+  if(b.disabled) return;
+  checkTimeline(parseInt(b.getAttribute("data-check"),10));
+}
+[].forEach.call(document.querySelectorAll("[data-check]"),function(b){
+  b.addEventListener("click",function(){onCheck(b)});
+});
+[].forEach.call(document.querySelectorAll(".ev"),function(b){
+  b.addEventListener("click",function(){onEv(b)});
+});
+[].forEach.call(document.querySelectorAll("[data-open]"),function(b){
+  b.addEventListener("click",function(){onOpen(b)});
+});
+if($("s1-open")){
+  $("s1-open").addEventListener("click",function(){
+    openModal("s1",CTQ_S1,"Conduite à tenir · cas d'école");
+  });
+}
+
+function ctqBlock(ctq,pick){
+  var good=-1;
+  ctq.options.forEach(function(o,i){ if(o.ok) good=i; });
+  var isOk = pick===good;
+  ctqScore.total++; if(isOk) ctqScore.ok++;
+  var h='<div class="ctq-res"><span class="head">Conduite à tenir : '+
+        (isOk?"réponse conforme":"réponse non conforme")+'</span>';
+  h+='<div class="row '+(isOk?"good":"bad")+'"><span class="who2">Votre choix</span>'+
+     '<p class="prop">'+ctq.options[pick].txt+'</p>'+
+     '<p class="why">'+ctq.options[pick].why+'</p></div>';
+  if(!isOk){
+    h+='<div class="row good"><span class="who2">La réponse conforme</span>'+
+       '<p class="prop">'+ctq.options[good].txt+'</p>'+
+       '<p class="why">'+ctq.options[good].why+'</p></div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+function revealS1(pick){
+  $("s1-open").disabled=true;
+  var box=$("s1-verdict");
+  box.innerHTML=
+    ctqBlock(CTQ_S1,pick)+
+    '<div class="rule-out"><h3>'+S1_RULE.title+'</h3><p>'+S1_RULE.text+'</p></div>';
+  box.classList.add("show");
+  try{ box.scrollIntoView({behavior:"smooth",block:"nearest"}) }catch(err){ try{ box.scrollIntoView(true) }catch(e2){} }
+}
+
+function checkTimeline(ci){
+  var C=CASES[ci], ul=$("tl"+ci), box=$("v"+ci);
+  if(done[ci]) return;
+  done[ci]=true;
+  ul.classList.add("revealed");
+  document.querySelector('[data-check="'+ci+'"]').disabled=true;
+  var noneBtn=document.querySelector('[data-none="'+ci+'"]');
+  if(noneBtn) noneBtn.disabled=true;
+
+  var first=Math.min.apply(null,C.errors);
+  var chosen=picks[ci];
+  [].forEach.call(ul.querySelectorAll(".ev"),function(b,i){
+    var isErr = C.errors.indexOf(i)>-1;
+    var wasPicked = chosen.indexOf(i)>-1;
+    var m = b.querySelector(".mark");
+    if(isErr){
+      b.classList.add("err");
+      if(wasPicked){ b.classList.add("got"); m.textContent="Trouvé"; }
+      else { b.classList.add("missed"); m.textContent="Non coché"; }
+    } else if(wasPicked){
+      b.classList.add("wrong"); m.textContent="Coché à tort";
+    }
+    if(i>=first) b.classList.add("tainted");
+  });
+
+  var hit=0, extra=0;
+  picks[ci].forEach(function(i){ if(C.errors.indexOf(i)>-1) hit++; else extra++; });
+  results[ci]={hit:hit,total:C.errors.length,extra:extra};
+
+  var stamp,msg;
+  if(C.trap && noneChoice[ci]){
+    stamp='<span class="stamp miss">Piège !</span>';
+    msg="La chronologie paraît propre, mais une étape est dans le mauvais ordre. Regardez surtout ce qui se passe avant la mise en suivi.";
+  } else if(C.trap && hit===C.errors.length && extra===0){
+    stamp='<span class="stamp hit">Piège déjoué</span>';
+    msg="Bien vu. Les actions sont toutes plausibles, mais la mise en suivi arrive trop tôt dans la chronologie.";
+  } else if(hit===C.errors.length && extra===0){
+    stamp='<span class="stamp hit">Complet</span>';
+    msg="Vous avez identifié les "+C.errors.length+" moments d'erreur, sans en ajouter.";
+  } else if(hit>0){
+    stamp='<span class="stamp near">Partiel</span>';
+    msg=hit+" moment"+(hit>1?"s":"")+" d'erreur sur "+C.errors.length+" identifié"+(hit>1?"s":"")+
+        (extra? ", et "+extra+" moment"+(extra>1?"s":"")+" retenu"+(extra>1?"s":"")+" à tort." : ".");
+  } else {
+    stamp='<span class="stamp miss">À revoir</span>';
+    msg="Aucun des moments d'erreur n'a été retenu. Les moments cochés sont des conséquences, pas des causes.";
+  }
+
+  var bl="";
+  C.barriers.forEach(function(x){
+    bl+='<li><span class="when">'+x.when+'</span><span>'+x.txt+'</span></li>';
+  });
+
+  box.innerHTML=
+    stamp+'<p style="font-size:1.05rem">'+msg+'</p>'+
+    '<h3 style="margin-top:20px">Les moments d\'erreur</h3>'+
+    '<ul class="barriers">'+bl+'</ul>'+
+    (C.extraNote?'<p class="note" style="margin-top:20px">'+C.extraNote+'</p>':'');
+  box.classList.add("show");
+  $("ab2"+ci).classList.remove("hidden");
+  refreshNext();
+  try{ box.scrollIntoView({behavior:"smooth",block:"nearest"}) }catch(err){ try{ box.scrollIntoView(true) }catch(e2){} }
+}
+
+/* étape 2 : conduite à tenir + ce qu'on retient */
+
+function sourceBlock(C){
+  if(!C.source) return "";
+  return '<details class="source-details">'+
+    '<summary>D’où vient ce cas ?</summary>'+
+    '<div class="sourcebox">'+
+      '<span class="src-kicker">Source et procédure</span>'+
+      '<p><b>'+C.source.kind+'</b></p>'+
+      '<p><b>Source :</b> '+C.source.fap+'</p>'+
+      '<p><b>Procédure associée :</b> '+C.source.procedure+'</p>'+
+      (C.source.note?'<p>'+C.source.note+'</p>':'')+
+    '</div>'+
+  '</details>';
+}
+
+function reveal(ci,pick){
+  var C=CASES[ci], box=$("w"+ci);
+  if(box.classList.contains("show")) return;
+  var good=-1;
+  C.ctq.options.forEach(function(o,i){if(o.ok) good=i;});
+  ctqResults[ci]=(pick===good);
+  $("ab2"+ci).classList.add("hidden");
+  box.innerHTML =
+    '<div class="result-grid">'+
+      '<div class="result-pane">'+ctqBlock(C.ctq,pick)+'</div>'+
+      '<div class="result-pane lesson-pane">'+
+        '<span class="pane-kicker">À retenir</span>'+
+        '<h3>'+C.ruleTitle+'</h3>'+
+        '<p>'+C.rule+'</p>'+
+      '</div>'+
+    '</div>'+
+    sourceBlock(C);
+  box.classList.add("show");
+  caseComplete[ci]=true;
+  refreshNext();
+  try{ box.scrollIntoView({behavior:"smooth",block:"nearest"}) }catch(err){ try{ box.scrollIntoView(true) }catch(e2){} }
+}
+
+function updateScore(){
+  var treated=0,h=0,tot=0,x=0,full=0;
+  var rows="";
+  CASES.forEach(function(C,ci){
+    var r=results[ci];
+    var chrono=null;
+    if(r){
+      treated++; h+=r.hit; tot+=r.total; x+=r.extra;
+      chrono=(r.hit===r.total && r.extra===0 && !noneChoice[ci]);
+    }
+    var conduct=ctqResults[ci];
+    if(chrono===true && conduct===true) full++;
+    var cTxt=chrono===null?"Chronologie : non faite":(chrono?"Chronologie : réussie":"Chronologie : à revoir");
+    var cCls=chrono===null?"mini":(chrono?"mini good":"mini bad");
+    var aTxt=conduct===null?"Conduite : non faite":(conduct?"Conduite : conforme":"Conduite : à revoir");
+    var aCls=conduct===null?"mini":(conduct?"mini good":"mini bad");
+    rows+='<div class="final-row">'+
+      '<span class="case-name">Cas '+(ci+1)+' · '+C.title+'</span>'+ 
+      '<span class="'+cCls+'">'+cTxt+'</span>'+ 
+      '<span class="'+aCls+'">'+aTxt+'</span>'+ 
+    '</div>';
+  });
+  $("finalresults").innerHTML=rows;
+  $("finalscore").textContent="Cas totalement réussis : "+full+" / "+CASES.length;
+  var fun="";
+  if(full===5) fun="🎯 Sans-faute : les cinq barrières sont bien repérées.";
+  else if(full===4) fun="👏 Presque parfait : un seul cas mérite un petit deuxième passage.";
+  else if(full===3) fun="👍 Bon réflexe : trois cas sont complètement maîtrisés.";
+  else if(full>0) fun="🔎 Il reste quelques pièges à déjouer — c'est justement le but de l'atelier.";
+  else fun="🧩 Aucun cas complet pour l'instant : reprenez-les tranquillement, les pièges sont faits pour faire discuter.";
+  $("finalfun").textContent=fun;
+  var s = treated===0 ? "" :
+    "Cas traités : "+treated+" / "+CASES.length+"  ·  moments d'erreur identifiés : "+h+" / "+tot+
+    (x? "  ·  retenus à tort : "+x : "");
+  if(ctqScore.total) s += (s?"  ·  ":"")+"conduites à tenir conformes : "+ctqScore.ok+" / "+ctqScore.total;
+  $("scoreline").textContent=s;
+}
+
+$("restart").addEventListener("click",function(){location.reload()});
+
+show(0);
+})();
+</script>
+
+</body>
+</html>
